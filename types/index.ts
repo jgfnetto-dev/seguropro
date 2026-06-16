@@ -1,0 +1,95 @@
+export interface Corretora {
+  id: string
+  nome: string
+  criado_em: string
+}
+
+export interface Usuario {
+  id: string
+  corretora_id: string
+  email: string
+  nome: string
+  telefone_whatsapp?: string
+  criado_em: string
+}
+
+export interface Seguradora {
+  id: string
+  corretora_id: string
+  codigo: string
+  nome: string
+  ramos: string[]
+  criado_em: string
+}
+
+export interface Cliente {
+  id: string
+  corretora_id: string
+  segurado: string
+  cpf_cnpj: string
+  email?: string
+  telefone?: string
+  pf_pj: 'PF' | 'PJ'
+  criado_em: string
+}
+
+export interface Apolice {
+  id: string
+  corretora_id: string
+  cliente_id: string
+  seguradora_id: string
+  numero_apolice: string
+  data_inicio: string
+  data_fim: string
+  tipo_seguro: string
+  premio_liquido: number
+  premio_total: number
+  comissao_percentual?: number
+  pdf_url?: string
+  criado_em: string
+  cliente?: Cliente
+  seguradora?: Seguradora
+}
+
+export interface ApoliceComRelacoes extends Apolice {
+  cliente: Cliente
+  seguradora: Seguradora
+}
+
+export type RamoSeguro =
+  | 'Auto'
+  | 'Vida'
+  | 'Residencial'
+  | 'Empresarial'
+  | 'Saúde'
+  | 'Dental'
+  | 'Rural'
+  | 'Frotas'
+  | 'Previdência'
+  | 'Outros'
+
+export type TipoSeguro =
+  | 'Automóvel'
+  | 'Vida'
+  | 'Residencial'
+  | 'Empresarial'
+  | 'Saúde'
+  | 'Dental'
+  | 'Rural'
+  | 'Frota'
+  | 'Previdência'
+  | 'Outros'
+
+export interface PdfExtractResult {
+  segurado?: string
+  cpf_cnpj?: string
+  email?: string
+  telefone?: string
+  numero_apolice?: string
+  data_inicio?: string
+  data_fim?: string
+  seguradora?: string
+  premio_liquido?: number
+  premio_total?: number
+  tipo_seguro?: string
+}
