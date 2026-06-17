@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { cn } from '@/lib/utils'
+import { APP_VERSION } from '@/lib/version'
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -31,6 +32,7 @@ export function Navbar({ userName: _userName }: { userName?: string }) {
         <Link href="/dashboard" className="flex items-center gap-2 mr-6">
           <Shield className="w-5 h-5 text-primary" />
           <span className="font-semibold text-on-surface">SeguroPro</span>
+          <span className="text-xs text-on-surface-variant">v{APP_VERSION}</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 flex-1">

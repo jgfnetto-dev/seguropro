@@ -7,6 +7,7 @@ import { Shield, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { APP_VERSION } from '@/lib/version'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -129,7 +130,7 @@ export default function LoginPage() {
           </div>
         </div>
         <p className="text-center text-xs text-on-surface-variant mt-3">
-          © 2024 SeguroPro Tecnologia. Todos os direitos reservados.
+          © 2024 SeguroPro Tecnologia. Todos os direitos reservados. · v{APP_VERSION}
         </p>
       </div>
     </div>
