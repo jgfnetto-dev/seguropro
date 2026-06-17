@@ -80,6 +80,17 @@ export type TipoSeguro =
   | 'Previdência'
   | 'Outros'
 
+export interface StatusRenovacao {
+  id: string
+  corretora_id: string
+  apolice_id: string
+  numero_apolice: string
+  data: string
+  status: 'Proposta' | 'Renovada' | 'Cancelada'
+  observacao?: string
+  criado_em: string
+}
+
 export interface PdfExtractResult {
   segurado?: string
   cpf_cnpj?: string
