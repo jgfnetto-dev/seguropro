@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { Card } from '@/components/ui/card'
-import { Search } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Search, CheckCircle2 } from 'lucide-react'
 import { formatDate, formatCurrency, formatCpfCnpj } from '@/lib/utils'
 import { ConciliarButton } from './conciliar-button'
 
@@ -68,7 +69,8 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
             {apolices?.map((a, i: number) => {
               const comissaoCalculada = a.premio_liquido * ((a.comissao_percentual ?? 0) / 100)
               const jaConciliado = conciliadoPorApolice.get(a.id) ?? 0
-              const comissaoRestante = comissaoCalculada - jaConciliado
+              const comissaoRestante = Math.round((comissaoCalculada - jaConciliado) * 100) / 100
+              const conciliado = comissaoRestante <= 0
               return (
                 <tr key={a.id} className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${i % 2 === 0 ? '' : 'bg-surface-container-low/40'}`}>
                   <td className="px-4 py-3 text-body-sm font-medium text-on-surface">{a.numero_apolice}</td>
@@ -79,7 +81,15 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
-                  <td className="px-4 py-3 text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</td>
+                  <td className="px-4 py-3">
+                    {conciliado ? (
+                      <Badge variant="success" className="gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
+                      </Badge>
+                    ) : (
+                      <span className="text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <ConciliarButton
                       apoliceId={a.id}
