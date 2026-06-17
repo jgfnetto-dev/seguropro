@@ -92,6 +92,17 @@ export interface StatusRenovacao {
   criado_em: string
 }
 
+export interface Conciliacao {
+  id: string
+  corretora_id: string
+  apolice_id: string
+  numero_apolice: string
+  data_conciliacao: string
+  valor_conciliar: number
+  comentario?: string
+  criado_em: string
+}
+
 export interface PdfExtractResult {
   segurado?: string
   cpf_cnpj?: string
