@@ -93,26 +93,26 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   <td className="px-4 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      {conciliado ? (
-                        <Badge variant="success" className="gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
-                        </Badge>
-                      ) : (
-                        <span className="text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</span>
-                      )}
+                    {conciliado ? (
+                      <Badge variant="success" className="gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
+                      </Badge>
+                    ) : (
+                      <span className="text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
                       {historico.length > 0 && (
                         <HistoricoConciliacaoButton numeroApolice={a.numero_apolice} historico={historico} />
                       )}
+                      <ConciliarButton
+                        apoliceId={a.id}
+                        numeroApolice={a.numero_apolice}
+                        clienteNome={a.cliente?.segurado ?? ''}
+                        comissaoDisponivel={comissaoRestante}
+                      />
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <ConciliarButton
-                      apoliceId={a.id}
-                      numeroApolice={a.numero_apolice}
-                      clienteNome={a.cliente?.segurado ?? ''}
-                      comissaoDisponivel={comissaoRestante}
-                    />
                   </td>
                 </tr>
               )

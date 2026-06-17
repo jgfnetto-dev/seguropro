@@ -19,7 +19,7 @@ export function HistoricoConciliacaoButton({ numeroApolice, historico }: Props) 
       <DialogTrigger asChild>
         <button
           title="Ver histórico de conciliações"
-          className="text-on-surface-variant hover:text-on-surface font-medium px-1"
+          className="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface text-sm font-semibold leading-none"
         >
           (...)
         </button>
