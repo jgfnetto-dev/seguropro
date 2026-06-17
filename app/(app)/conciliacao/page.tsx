@@ -67,6 +67,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Início</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Fim</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Tipo de Seguro</th>
+              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Vendedor</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Prêmio Líquido</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">% Comissão</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Comissão</th>
@@ -88,6 +89,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_fim)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
+                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.vendedor || '—'}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
                   <td className="px-4 py-3">
@@ -117,7 +119,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
             })}
             {!apolices?.length && (
               <tr>
-                <td colSpan={10} className="text-center py-12 text-body-sm text-on-surface-variant">
+                <td colSpan={11} className="text-center py-12 text-body-sm text-on-surface-variant">
                   Nenhuma apólice cadastrada
                 </td>
               </tr>
