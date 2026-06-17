@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { sendWhatsAppMessage } from '@/lib/evolution'
+import { sendWhatsAppDocument } from '@/lib/evolution'
+import { gerarPdfRenovacoes } from '@/lib/pdf'
 
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient()
@@ -16,11 +17,16 @@ export async function POST(req: NextRequest) {
   const telefone = usuario?.telefone_whatsapp
   if (!telefone) return NextResponse.json({ error: 'WhatsApp number not configured in profile' }, { status: 400 })
 
-  const { text } = await req.json()
-  if (!text) return NextResponse.json({ error: 'No text provided' }, { status: 400 })
+  const { apolices, mesNome } = await req.json()
+  if (!Array.isArray(apolices) || !apolices.length) {
+    return NextResponse.json({ error: 'No apolices provided' }, { status: 400 })
+  }
 
   try {
-    const result = await sendWhatsAppMessage(telefone, text)
+    const pdfBuffer = await gerarPdfRenovacoes(apolices, mesNome ?? '')
+    const base64 = pdfBuffer.toString('base64')
+    const caption = `🔄 Renovações ${mesNome ?? ''} — SeguroPro\nTotal: ${apolices.length} apólice(s) para renovar.`
+    const result = await sendWhatsAppDocument(telefone, base64, `renovacoes-${mesNome ?? 'mes'}.pdf`, caption)
     return NextResponse.json(result)
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'WhatsApp send failed'

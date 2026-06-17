@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
-import { formatDate } from '@/lib/utils'
 
 interface ApoliceRenovacao {
   numero_apolice: string
@@ -22,22 +21,17 @@ export function EnviarWhatsappButton({ apolices, mesNome }: Props) {
 
   async function handleEnviar() {
     setLoading(true)
-    const lista = apolices.map((a) =>
-      `• ${a.cliente?.segurado} (${a.numero_apolice}) — Vence: ${formatDate(a.data_fim)} — ${a.seguradora?.nome}`
-    ).join('\n')
-
-    const texto = `🔄 *Renovações ${mesNome}* — SeguroPro\n\n${lista}\n\nTotal: ${apolices.length} apólice(s) para renovar.`
 
     const res = await fetch('/api/whatsapp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: texto }),
+      body: JSON.stringify({ apolices, mesNome }),
     })
 
     const data = await res.json()
     setLoading(false)
     if (res.ok) {
-      showToast('Mensagem enviada via WhatsApp!', 'success')
+      showToast('PDF de renovações enviado via WhatsApp!', 'success')
     } else {
       showToast(`Erro ao enviar WhatsApp: ${data.error ?? 'falha desconhecida'}`, 'error')
     }
