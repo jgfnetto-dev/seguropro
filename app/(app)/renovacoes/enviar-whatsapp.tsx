@@ -34,11 +34,12 @@ export function EnviarWhatsappButton({ apolices, mesNome }: Props) {
       body: JSON.stringify({ text: texto }),
     })
 
+    const data = await res.json()
     setLoading(false)
     if (res.ok) {
       showToast('Mensagem enviada via WhatsApp!', 'success')
     } else {
-      showToast('Erro ao enviar WhatsApp. Verifique a configuração.', 'error')
+      showToast(`Erro ao enviar WhatsApp: ${data.error ?? 'falha desconhecida'}`, 'error')
     }
   }
 
