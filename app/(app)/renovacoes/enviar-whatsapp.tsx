@@ -8,6 +8,7 @@ interface ApoliceRenovacao {
   data_fim: string
   cliente?: { segurado: string }
   seguradora?: { nome: string }
+  status?: string
 }
 
 interface Props {

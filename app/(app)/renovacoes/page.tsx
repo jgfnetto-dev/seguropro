@@ -231,7 +231,10 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
 
       {apolices && apolices.length > 0 && (
         <div className="fixed bottom-6 right-6">
-          <EnviarWhatsappButton apolices={apolices} mesNome={`${getMonthName(mes)}/${ano}`} />
+          <EnviarWhatsappButton
+            apolices={apolices.map((a) => ({ ...a, status: statusPorApolice.get(a.id) }))}
+            mesNome={`${getMonthName(mes)}/${ano}`}
+          />
         </div>
       )}
     </div>
