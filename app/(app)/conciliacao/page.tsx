@@ -8,6 +8,7 @@ import { Search, CheckCircle2 } from 'lucide-react'
 import { formatDate, formatCurrency, formatCpfCnpj } from '@/lib/utils'
 import { ConciliarButton } from './conciliar-button'
 import { HistoricoConciliacaoButton } from './historico-button'
+import { VendedorButton } from './vendedor-button'
 
 export default async function ConciliacaoPage({ searchParams }: { searchParams: { q?: string } }) {
   const supabase = await createServerSupabaseClient()
@@ -57,8 +58,8 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
         />
       </form>
 
-      <Card className="overflow-x-auto">
-        <table className="w-full min-w-[1100px]">
+      <Card>
+        <table className="w-full">
           <thead>
             <tr className="border-b border-outline-variant/30">
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Apólice</th>
@@ -89,7 +90,9 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_fim)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.vendedor || '—'}</td>
+                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">
+                    {a.vendedor ? <VendedorButton vendedor={a.vendedor} /> : '—'}
+                  </td>
                   <td className="px-4 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
                   <td className="px-4 py-3">
