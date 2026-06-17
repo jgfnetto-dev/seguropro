@@ -50,7 +50,7 @@ export default async function DashboardPage() {
   ]
 
   const quickLinks = [
-    { href: '/clientes/novo', label: 'Clientes', icon: Users },
+    { href: '/clientes', label: 'Clientes', icon: Users },
     { href: '/apolices/novo', label: 'Apólices', icon: Shield },
     { href: '/renovacoes', label: 'Renovações', icon: RefreshCw },
     { href: '/seguradoras', label: 'Seguradoras', icon: Building2 },

@@ -3,8 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Plus, Search, Eye, Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Search, Eye, Pencil } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatCpfCnpj } from '@/lib/utils'
@@ -30,14 +29,9 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-h1 text-on-surface">Clientes</h1>
-          <p className="text-body-sm text-on-surface-variant mt-1">Gerencie sua base de segurados com eficiência.</p>
-        </div>
-        <Link href="/clientes/novo">
-          <Button className="gap-2"><Plus className="w-4 h-4" /> Novo Cliente</Button>
-        </Link>
+      <div>
+        <h1 className="text-h1 text-on-surface">Clientes</h1>
+        <p className="text-body-sm text-on-surface-variant mt-1">Gerencie sua base de segurados com eficiência.</p>
       </div>
 
       <form method="GET" className="space-y-3">
