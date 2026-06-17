@@ -63,6 +63,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
   const [premioLiquido, setPremioLiquido] = useState(apolice?.premio_liquido?.toString() ?? '0.00')
   const [premioTotal, setPremioTotal] = useState(apolice?.premio_total?.toString() ?? '0.00')
   const [comissao, setComissao] = useState(apolice?.comissao_percentual?.toString() ?? '15.00')
+  const [vendedor, setVendedor] = useState(apolice?.vendedor ?? '')
   const [editingComissao, setEditingComissao] = useState(false) // highlight active inline-edit
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [extracting, setExtracting] = useState(false)
@@ -240,6 +241,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         premio_total: parseFloat(premioTotal),
         comissao_percentual: parseFloat(comissao),
         pdf_url: pdfUrl,
+        vendedor: vendedor || null,
       }
 
       const res = await fetch('/api/apolices', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -334,6 +336,10 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
                       </Select>
                     )}
                   </div>
+                </div>
+                <div>
+                  <Label>Vendedor</Label>
+                  <Input value={vendedor} onChange={e => setVendedor(e.target.value)} placeholder="Ex: João Silva (opcional)" />
                 </div>
               </CardContent>
             </Card>

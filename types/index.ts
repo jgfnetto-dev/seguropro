@@ -46,6 +46,7 @@ export interface Apolice {
   premio_total: number
   comissao_percentual?: number
   pdf_url?: string
+  vendedor?: string
   criado_em: string
   cliente?: Cliente
   seguradora?: Seguradora
