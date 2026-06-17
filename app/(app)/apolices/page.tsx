@@ -73,6 +73,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Cliente</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Tipo</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Seguradora</th>
+              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Vendedor</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Prêmio Total</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Vencimento</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Status</th>
@@ -90,6 +91,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
                 <td className="px-4 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
                 <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
                 <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.seguradora?.nome}</td>
+                <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.vendedor || '—'}</td>
                 <td className="px-4 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_total)}</td>
                 <td className="px-4 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
                 <td className="px-4 py-3">{getStatusBadge(a.data_fim)}</td>
@@ -105,7 +107,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
             ))}
             {!apolices?.length && (
               <tr>
-                <td colSpan={8} className="text-center py-12 text-body-sm text-on-surface-variant">
+                <td colSpan={9} className="text-center py-12 text-body-sm text-on-surface-variant">
                   Nenhuma apólice cadastrada
                 </td>
               </tr>
