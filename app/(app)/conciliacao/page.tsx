@@ -57,8 +57,8 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
         />
       </form>
 
-      <Card>
-        <table className="w-full">
+      <Card className="overflow-x-auto">
+        <table className="w-full min-w-[1100px]">
           <thead>
             <tr className="border-b border-outline-variant/30">
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Apólice</th>
