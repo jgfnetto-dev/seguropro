@@ -12,7 +12,7 @@ export async function POST(_req: NextRequest) {
 
   const { data: usuario } = await supabase
     .from('usuarios')
-    .select('corretora_id, telefone_whatsapp')
+    .select('corretora_id, telefone_whatsapp, notificacao_renovacoes_enviada_em')
     .eq('id', session.user.id)
     .single()
 
@@ -23,6 +23,15 @@ export async function POST(_req: NextRequest) {
   const hoje = new Date()
   const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0]
   const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0]
+
+  const ultimoEnvio = usuario.notificacao_renovacoes_enviada_em
+  if (ultimoEnvio) {
+    const dataUltimoEnvio = new Date(ultimoEnvio)
+    const mesmoMes = dataUltimoEnvio.getFullYear() === hoje.getFullYear() && dataUltimoEnvio.getMonth() === hoje.getMonth()
+    if (mesmoMes) {
+      return NextResponse.json({ sent: false, reason: 'Notificação já enviada neste mês.' })
+    }
+  }
 
   const { data: apolices } = await supabase
     .from('apolices')
@@ -47,6 +56,10 @@ export async function POST(_req: NextRequest) {
 
   try {
     await sendWhatsAppMessage(usuario.telefone_whatsapp, texto)
+    await supabase
+      .from('usuarios')
+      .update({ notificacao_renovacoes_enviada_em: hoje.toISOString().split('T')[0] })
+      .eq('id', session.user.id)
     return NextResponse.json({ sent: true, total: apolices.length })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'WhatsApp send failed'
