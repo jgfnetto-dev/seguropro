@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Search, CheckCircle2 } from 'lucide-react'
 import { formatDate, formatCurrency, formatCpfCnpj } from '@/lib/utils'
 import { ConciliarButton } from './conciliar-button'
+import { HistoricoConciliacaoButton } from './historico-button'
 
 export default async function ConciliacaoPage({ searchParams }: { searchParams: { q?: string } }) {
   const supabase = await createServerSupabaseClient()
@@ -24,12 +25,19 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
 
   const [{ data: apolices }, { data: conciliacoes }] = await Promise.all([
     query,
-    supabase.from('conciliacao').select('apolice_id, valor_conciliar'),
+    supabase
+      .from('conciliacao')
+      .select('apolice_id, data_conciliacao, valor_conciliar, comentario')
+      .order('data_conciliacao', { ascending: false }),
   ])
 
   const conciliadoPorApolice = new Map<string, number>()
+  const historicoPorApolice = new Map<string, { data_conciliacao: string; valor_conciliar: number; comentario?: string | null }[]>()
   conciliacoes?.forEach((c) => {
     conciliadoPorApolice.set(c.apolice_id, (conciliadoPorApolice.get(c.apolice_id) ?? 0) + Number(c.valor_conciliar))
+    const lista = historicoPorApolice.get(c.apolice_id) ?? []
+    lista.push(c)
+    historicoPorApolice.set(c.apolice_id, lista)
   })
 
   return (
@@ -71,6 +79,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               const jaConciliado = conciliadoPorApolice.get(a.id) ?? 0
               const comissaoRestante = Math.round((comissaoCalculada - jaConciliado) * 100) / 100
               const conciliado = comissaoRestante <= 0
+              const historico = historicoPorApolice.get(a.id) ?? []
               return (
                 <tr key={a.id} className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${i % 2 === 0 ? '' : 'bg-surface-container-low/40'}`}>
                   <td className="px-4 py-3 text-body-sm font-medium text-on-surface">{a.numero_apolice}</td>
@@ -82,13 +91,18 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   <td className="px-4 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
                   <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
                   <td className="px-4 py-3">
-                    {conciliado ? (
-                      <Badge variant="success" className="gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
-                      </Badge>
-                    ) : (
-                      <span className="text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</span>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {conciliado ? (
+                        <Badge variant="success" className="gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
+                        </Badge>
+                      ) : (
+                        <span className="text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</span>
+                      )}
+                      {historico.length > 0 && (
+                        <HistoricoConciliacaoButton numeroApolice={a.numero_apolice} historico={historico} />
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <ConciliarButton
