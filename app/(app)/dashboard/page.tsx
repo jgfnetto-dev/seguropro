@@ -12,36 +12,29 @@ export default async function DashboardPage() {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
 
-  const { data: usuario } = await supabase
-    .from('usuarios')
-    .select('nome, corretora_id')
-    .eq('id', session.user.id)
-    .single()
-
-  const corretora_id = usuario?.corretora_id
-  const primeiroNome = usuario?.nome?.split(' ')[0] ?? 'Corretor'
-
   const [
+    { data: usuario },
     { count: totalClientes },
     { count: totalApolices },
     { data: renovacoesMes },
     { data: alertas },
   ] = await Promise.all([
-    supabase.from('clientes').select('*', { count: 'exact', head: true }).eq('corretora_id', corretora_id),
-    supabase.from('apolices').select('*', { count: 'exact', head: true }).eq('corretora_id', corretora_id),
+    supabase.from('usuarios').select('nome').eq('id', session.user.id).single(),
+    supabase.from('clientes').select('*', { count: 'exact', head: true }),
+    supabase.from('apolices').select('*', { count: 'exact', head: true }),
     supabase.from('apolices')
       .select('*', { count: 'exact' })
-      .eq('corretora_id', corretora_id)
       .gte('data_fim', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
       .lte('data_fim', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]),
     supabase.from('apolices')
       .select('*, cliente:clientes(segurado), seguradora:seguradoras(nome)')
-      .eq('corretora_id', corretora_id)
       .gte('data_fim', new Date().toISOString().split('T')[0])
       .lte('data_fim', new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0])
       .order('data_fim', { ascending: true })
       .limit(3),
   ])
+
+  const primeiroNome = usuario?.nome?.split(' ')[0] ?? 'Corretor'
 
   const stats = [
     { label: 'Total de Clientes', value: totalClientes ?? 0, icon: Users, href: '/clientes' },
@@ -51,7 +44,7 @@ export default async function DashboardPage() {
 
   const quickLinks = [
     { href: '/clientes', label: 'Clientes', icon: Users },
-    { href: '/apolices/novo', label: 'Apólices', icon: Shield },
+    { href: '/apolices', label: 'Apólices', icon: Shield },
     { href: '/renovacoes', label: 'Renovações', icon: RefreshCw },
     { href: '/seguradoras', label: 'Seguradoras', icon: Building2 },
   ]

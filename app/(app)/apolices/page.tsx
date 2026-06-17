@@ -15,24 +15,19 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
 
-  const { data: usuario } = await supabase.from('usuarios').select('corretora_id').eq('id', session.user.id).single()
-
   let query = supabase
     .from('apolices')
     .select('*, cliente:clientes(segurado), seguradora:seguradoras(nome)')
-    .eq('corretora_id', usuario?.corretora_id)
     .order('data_fim', { ascending: true })
 
   if (searchParams.q) {
     query = query.or(`numero_apolice.ilike.%${searchParams.q}%`)
   }
 
-  const { data: apolices } = await query
-
-  const { data: todasApolices } = await supabase
-    .from('apolices')
-    .select('cliente_id')
-    .eq('corretora_id', usuario?.corretora_id)
+  const [{ data: apolices }, { data: todasApolices }] = await Promise.all([
+    query,
+    supabase.from('apolices').select('cliente_id'),
+  ])
 
   const contagemPorCliente = new Map<string, number>()
   todasApolices?.forEach((a) => {

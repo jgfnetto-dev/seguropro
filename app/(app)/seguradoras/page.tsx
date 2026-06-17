@@ -14,10 +14,7 @@ export default async function SeguradorasPage({ searchParams }: { searchParams: 
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
 
-  const { data: usuario } = await supabase.from('usuarios').select('corretora_id').eq('id', session.user.id).single()
-  const corretora_id = usuario?.corretora_id
-
-  let query = supabase.from('seguradoras').select('*').eq('corretora_id', corretora_id).order('nome')
+  let query = supabase.from('seguradoras').select('*').order('nome')
   if (searchParams.q) {
     query = query.or(`nome.ilike.%${searchParams.q}%,codigo.ilike.%${searchParams.q}%`)
   }

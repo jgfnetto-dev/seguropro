@@ -18,8 +18,6 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
 
-  const { data: usuario } = await supabase.from('usuarios').select('corretora_id').eq('id', session.user.id).single()
-
   const hoje = new Date()
   const mes = searchParams.mes ? parseInt(searchParams.mes) : hoje.getMonth()
   const ano = searchParams.ano ? parseInt(searchParams.ano) : hoje.getFullYear()
@@ -30,7 +28,6 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
   const { data: apolices } = await supabase
     .from('apolices')
     .select('*, cliente:clientes(segurado, cpf_cnpj), seguradora:seguradoras(nome)')
-    .eq('corretora_id', usuario?.corretora_id)
     .gte('data_fim', inicio)
     .lte('data_fim', fim)
     .order('data_fim', { ascending: true })

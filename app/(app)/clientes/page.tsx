@@ -13,9 +13,7 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
 
-  const { data: usuario } = await supabase.from('usuarios').select('corretora_id').eq('id', session.user.id).single()
-
-  let query = supabase.from('clientes').select('*').eq('corretora_id', usuario?.corretora_id).order('segurado')
+  let query = supabase.from('clientes').select('*').order('segurado')
   if (searchParams.q) query = query.or(`segurado.ilike.%${searchParams.q}%,cpf_cnpj.ilike.%${searchParams.q}%`)
   if (searchParams.tipo === 'PF') query = query.eq('pf_pj', 'PF')
   if (searchParams.tipo === 'PJ') query = query.eq('pf_pj', 'PJ')
