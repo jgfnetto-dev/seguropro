@@ -33,6 +33,27 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
     .lte('data_fim', fim)
     .order('data_fim', { ascending: true })
 
+  const apoliceIds = apolices?.map((a) => a.id) ?? []
+  const { data: statusRows } = apoliceIds.length
+    ? await supabase
+        .from('status_renovacao')
+        .select('apolice_id, status')
+        .in('apolice_id', apoliceIds)
+        .order('criado_em', { ascending: false })
+    : { data: [] as { apolice_id: string; status: string }[] }
+
+  const statusPorApolice = new Map<string, string>()
+  statusRows?.forEach((s) => {
+    if (!statusPorApolice.has(s.apolice_id)) statusPorApolice.set(s.apolice_id, s.status)
+  })
+
+  function getStatusBadge(status: string | undefined) {
+    if (!status) return <Badge variant="outline" className="text-xs">Não Informado</Badge>
+    if (status === 'Renovada') return <Badge variant="success" className="text-xs">Renovada</Badge>
+    if (status === 'Cancelada') return <Badge variant="destructive" className="text-xs">Cancelada</Badge>
+    return <Badge variant="secondary" className="text-xs">Proposta</Badge>
+  }
+
   const total = apolices?.length ?? 0
   const vencendo7 = apolices?.filter(a => {
     const diff = (new Date(a.data_fim).getTime() - hoje.getTime()) / 86400000
@@ -138,6 +159,7 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
                 <th className="label-caps text-on-surface-variant text-left px-4 py-3">Ramo</th>
                 <th className="label-caps text-on-surface-variant text-left px-4 py-3">Data Fim</th>
                 <th className="label-caps text-on-surface-variant text-left px-4 py-3">Seguradora</th>
+                <th className="label-caps text-on-surface-variant text-left px-4 py-3">Status Renovação</th>
                 <th className="label-caps text-on-surface-variant text-right px-4 py-3">Ações</th>
               </tr>
             </thead>
@@ -177,6 +199,9 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
                         <span className="text-body-sm text-on-surface-variant">{a.seguradora?.nome}</span>
                       </div>
                     </td>
+                    <td className="px-4 py-3">
+                      {getStatusBadge(statusPorApolice.get(a.id))}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <CadastrarStatusButton
                         apoliceId={a.id}
@@ -189,7 +214,7 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
               })}
               {!apolices?.length && (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-body-sm text-on-surface-variant">
+                  <td colSpan={8} className="text-center py-12 text-body-sm text-on-surface-variant">
                     Nenhuma renovação para {getMonthName(mes)}/{ano}
                   </td>
                 </tr>
