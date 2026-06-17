@@ -62,17 +62,17 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
         <table className="w-full">
           <thead>
             <tr className="border-b border-outline-variant/30">
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Apólice</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">CPF/CNPJ</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Cliente</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Início</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Fim</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Tipo de Seguro</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Vendedor</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Prêmio Líquido</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">% Comissão</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Comissão</th>
-              <th className="label-caps text-on-surface-variant text-right px-4 py-3">Ações</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Apólice</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">CPF/CNPJ</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Cliente</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Início</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Fim</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Tipo de Seguro</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Vendedor</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Prêmio Líquido</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">% Comissão</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Comissão</th>
+              <th className="label-caps text-on-surface-variant text-right px-2 py-3">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -84,18 +84,18 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               const historico = historicoPorApolice.get(a.id) ?? []
               return (
                 <tr key={a.id} className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${i % 2 === 0 ? '' : 'bg-surface-container-low/40'}`}>
-                  <td className="px-4 py-3 text-body-sm font-medium text-on-surface">{a.numero_apolice}</td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.cliente?.cpf_cnpj ? formatCpfCnpj(a.cliente.cpf_cnpj) : '—'}</td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_fim)}</td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">
+                  <td className="px-3 py-3 text-body-sm font-medium text-on-surface">{a.numero_apolice}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.cliente?.cpf_cnpj ? formatCpfCnpj(a.cliente.cpf_cnpj) : '—'}</td>
+                  <td className="px-3 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_fim)}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">
                     {a.vendedor ? <VendedorButton vendedor={a.vendedor} /> : '—'}
                   </td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
-                  <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
+                  <td className="px-3 py-3">
                     {conciliado ? (
                       <Badge variant="success" className="gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
@@ -104,7 +104,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                       <span className="text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       {historico.length > 0 && (
                         <HistoricoConciliacaoButton numeroApolice={a.numero_apolice} historico={historico} />
@@ -130,7 +130,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
           </tbody>
         </table>
         {apolices && apolices.length > 0 && (
-          <div className="px-4 py-3 border-t border-outline-variant/20 text-body-sm text-on-surface-variant">
+          <div className="px-3 py-3 border-t border-outline-variant/20 text-body-sm text-on-surface-variant">
             Exibindo {apolices.length} apólice{apolices.length !== 1 ? 's' : ''}
           </div>
         )}
