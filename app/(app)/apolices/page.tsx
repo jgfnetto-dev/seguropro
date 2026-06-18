@@ -7,10 +7,10 @@ import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { formatDate, formatCurrency } from '@/lib/utils'
+import { formatDate, formatCurrency, MESES, anosDisponiveis } from '@/lib/utils'
 import { DeleteApoliceButton } from './delete-button'
 
-export default async function ApolicesPage({ searchParams }: { searchParams: { q?: string } }) {
+export default async function ApolicesPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string } }) {
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
@@ -22,6 +22,15 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
 
   if (searchParams.q) {
     query = query.or(`numero_apolice.ilike.%${searchParams.q}%`)
+  }
+
+  if (searchParams.mes && searchParams.ano) {
+    const mes = parseInt(searchParams.mes)
+    const ano = parseInt(searchParams.ano)
+    const inicio = `${ano}-${String(mes).padStart(2, '0')}-01`
+    const ultimoDia = new Date(ano, mes, 0).getDate()
+    const fim = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`
+    query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
   }
 
   const [{ data: apolices }, { data: todasApolices }] = await Promise.all([
@@ -55,14 +64,36 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
         </Link>
       </div>
 
-      <form method="GET" className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
-        <input
-          name="q"
-          defaultValue={searchParams.q}
-          placeholder="Buscar por número de apólice..."
-          className="w-full h-10 pl-10 pr-4 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+      <form method="GET" className="flex flex-wrap items-end gap-3">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+          <input
+            name="q"
+            defaultValue={searchParams.q}
+            placeholder="Buscar por número de apólice..."
+            className="w-full h-10 pl-10 pr-4 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <select
+          name="mes"
+          defaultValue={searchParams.mes ?? ''}
+          className="h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">Mês de emissão</option>
+          {MESES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+        </select>
+        <select
+          name="ano"
+          defaultValue={searchParams.ano ?? ''}
+          className="h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">Ano</option>
+          {anosDisponiveis().map((ano) => <option key={ano} value={ano}>{ano}</option>)}
+        </select>
+        <Button type="submit" variant="outline">Filtrar</Button>
+        {(searchParams.mes || searchParams.ano) && (
+          <Link href="/apolices"><Button type="button" variant="ghost">Limpar filtro</Button></Link>
+        )}
       </form>
 
       <Card>

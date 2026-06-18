@@ -58,6 +58,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
   const [clienteId, setClienteId] = useState(apolice?.cliente_id ?? defaultClienteId ?? '')
   const [tipoSeguro, setTipoSeguro] = useState(apolice?.tipo_seguro ?? '')
   const [tiposExtra, setTiposExtra] = useState<string[]>([])
+  const [dataEmissao, setDataEmissao] = useState(apolice?.data_emissao ?? '')
   const [dataInicio, setDataInicio] = useState(apolice?.data_inicio ?? '')
   const [dataFim, setDataFim] = useState(apolice?.data_fim ?? '')
   const [premioLiquido, setPremioLiquido] = useState(apolice?.premio_liquido?.toString() ?? '0.00')
@@ -95,6 +96,8 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         if (data.numero_apolice) setNumeroApolice(data.numero_apolice)
         if (data.data_inicio) setDataInicio(data.data_inicio)
         if (data.data_fim) setDataFim(data.data_fim)
+        if (data.data_emissao) setDataEmissao(data.data_emissao)
+        else if (data.data_inicio) setDataEmissao(data.data_inicio)
         if (data.premio_liquido) setPremioLiquido(data.premio_liquido.toString())
         if (data.premio_total) setPremioTotal(data.premio_total.toString())
         let seguradoraEncontrada: { id: string; nome: string; ramos?: string[] } | undefined
@@ -235,6 +238,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         seguradora_id: seguradoraId,
         numero_apolice: numeroApolice,
         tipo_seguro: tipoSeguro,
+        data_emissao: dataEmissao || dataInicio,
         data_inicio: dataInicio,
         data_fim: dataFim,
         premio_liquido: parseFloat(premioLiquido),
@@ -384,7 +388,11 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
                   <span className="text-secondary">📅</span>
                   <h3 className="text-h3 text-on-surface">Vigência</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label>Data Emissão</Label>
+                    <Input type="date" value={dataEmissao} onChange={e => setDataEmissao(e.target.value)} />
+                  </div>
                   <div>
                     <Label>Data Início</Label>
                     <Input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} required />

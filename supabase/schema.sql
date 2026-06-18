@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS apolices (
   cliente_id uuid REFERENCES clientes(id) NOT NULL,
   seguradora_id uuid REFERENCES seguradoras(id) NOT NULL,
   numero_apolice text NOT NULL,
+  data_emissao date,
   data_inicio date NOT NULL,
   data_fim date NOT NULL,
   tipo_seguro text NOT NULL,

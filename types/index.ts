@@ -39,6 +39,7 @@ export interface Apolice {
   cliente_id: string
   seguradora_id: string
   numero_apolice: string
+  data_emissao: string
   data_inicio: string
   data_fim: string
   tipo_seguro: string
@@ -109,6 +110,7 @@ export interface PdfExtractResult {
   email?: string
   telefone?: string
   numero_apolice?: string
+  data_emissao?: string
   data_inicio?: string
   data_fim?: string
   seguradora?: string

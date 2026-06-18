@@ -1,16 +1,18 @@
 export const dynamic = 'force-dynamic'
 
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Search, CheckCircle2 } from 'lucide-react'
-import { formatDate, formatCurrency, formatCpfCnpj } from '@/lib/utils'
+import { formatDate, formatCurrency, formatCpfCnpj, MESES, anosDisponiveis } from '@/lib/utils'
 import { ConciliarButton } from './conciliar-button'
 import { HistoricoConciliacaoButton } from './historico-button'
 import { VendedorButton } from './vendedor-button'
 
-export default async function ConciliacaoPage({ searchParams }: { searchParams: { q?: string } }) {
+export default async function ConciliacaoPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string } }) {
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
@@ -22,6 +24,15 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
 
   if (searchParams.q) {
     query = query.or(`numero_apolice.ilike.%${searchParams.q}%`)
+  }
+
+  if (searchParams.mes && searchParams.ano) {
+    const mes = parseInt(searchParams.mes)
+    const ano = parseInt(searchParams.ano)
+    const inicio = `${ano}-${String(mes).padStart(2, '0')}-01`
+    const ultimoDia = new Date(ano, mes, 0).getDate()
+    const fim = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`
+    query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
   }
 
   const [{ data: apolices }, { data: conciliacoes }] = await Promise.all([
@@ -48,14 +59,36 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
         <p className="text-body-sm text-on-surface-variant mt-1">Acompanhe e concilie as comissões das apólices.</p>
       </div>
 
-      <form method="GET" className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
-        <input
-          name="q"
-          defaultValue={searchParams.q}
-          placeholder="Buscar por número de apólice..."
-          className="w-full h-10 pl-10 pr-4 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+      <form method="GET" className="flex flex-wrap items-end gap-3">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+          <input
+            name="q"
+            defaultValue={searchParams.q}
+            placeholder="Buscar por número de apólice..."
+            className="w-full h-10 pl-10 pr-4 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <select
+          name="mes"
+          defaultValue={searchParams.mes ?? ''}
+          className="h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">Mês de emissão</option>
+          {MESES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+        </select>
+        <select
+          name="ano"
+          defaultValue={searchParams.ano ?? ''}
+          className="h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">Ano</option>
+          {anosDisponiveis().map((ano) => <option key={ano} value={ano}>{ano}</option>)}
+        </select>
+        <Button type="submit" variant="outline">Filtrar</Button>
+        {(searchParams.mes || searchParams.ano) && (
+          <Link href="/conciliacao"><Button type="button" variant="ghost">Limpar filtro</Button></Link>
+        )}
       </form>
 
       <Card>
@@ -65,6 +98,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               <th className="label-caps text-on-surface-variant text-left px-3 py-3">Apólice</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">CPF/CNPJ</th>
               <th className="label-caps text-on-surface-variant text-left px-3 py-3">Cliente</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Emissão</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Início</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Fim</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Tipo de Seguro</th>
@@ -87,6 +121,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   <td className="px-3 py-3 text-body-sm font-medium text-on-surface">{a.numero_apolice}</td>
                   <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.cliente?.cpf_cnpj ? formatCpfCnpj(a.cliente.cpf_cnpj) : '—'}</td>
                   <td className="px-3 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.data_emissao ? formatDate(a.data_emissao) : '—'}</td>
                   <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
                   <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_fim)}</td>
                   <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
@@ -122,7 +157,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
             })}
             {!apolices?.length && (
               <tr>
-                <td colSpan={11} className="text-center py-12 text-body-sm text-on-surface-variant">
+                <td colSpan={12} className="text-center py-12 text-body-sm text-on-surface-variant">
                   Nenhuma apólice cadastrada
                 </td>
               </tr>
