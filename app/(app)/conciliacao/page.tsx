@@ -23,7 +23,15 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
     .order('data_fim', { ascending: true })
 
   if (searchParams.q) {
-    query = query.or(`numero_apolice.ilike.%${searchParams.q}%`)
+    const termo = searchParams.q
+    const { data: clientesMatch } = await supabase
+      .from('clientes')
+      .select('id')
+      .ilike('segurado', `%${termo}%`)
+    const clienteIds = clientesMatch?.map((c) => c.id) ?? []
+    query = clienteIds.length
+      ? query.or(`numero_apolice.ilike.%${termo}%,cliente_id.in.(${clienteIds.join(',')})`)
+      : query.ilike('numero_apolice', `%${termo}%`)
   }
 
   if (searchParams.mes && searchParams.ano) {
@@ -65,7 +73,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
           <input
             name="q"
             defaultValue={searchParams.q}
-            placeholder="Buscar por número de apólice..."
+            placeholder="Buscar por apólice ou cliente..."
             className="w-full h-10 pl-10 pr-4 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
