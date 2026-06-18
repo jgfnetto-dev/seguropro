@@ -3,25 +3,46 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, ArrowUp, ArrowDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { MESES, anosDisponiveis } from '@/lib/utils'
 import { ApoliceRow } from './apolice-row'
 
-export default async function ApolicesPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string } }) {
+type SortField = 'cliente' | 'seguradora' | 'data_fim'
+
+export default async function ApolicesPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string; sort?: string; dir?: string } }) {
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
 
+  const sort: SortField = searchParams.sort === 'cliente' || searchParams.sort === 'seguradora' ? searchParams.sort : 'data_fim'
+  const dir: 'asc' | 'desc' = searchParams.dir === 'desc' ? 'desc' : 'asc'
+  const ascending = dir === 'asc'
+
   let query = supabase
     .from('apolices')
-    .select('*, cliente:clientes(segurado), seguradora:seguradoras(nome)')
-    .order('data_fim', { ascending: true })
+    .select('*, cliente:clientes(segurado, cpf_cnpj), seguradora:seguradoras(nome)')
+
+  if (sort === 'cliente') {
+    query = query.order('segurado', { foreignTable: 'cliente', ascending })
+  } else if (sort === 'seguradora') {
+    query = query.order('nome', { foreignTable: 'seguradora', ascending })
+  } else {
+    query = query.order('data_fim', { ascending })
+  }
 
   if (searchParams.q) {
-    query = query.or(`numero_apolice.ilike.%${searchParams.q}%`)
+    const termo = searchParams.q
+    const { data: clientesMatch } = await supabase
+      .from('clientes')
+      .select('id')
+      .ilike('segurado', `%${termo}%`)
+    const clienteIds = clientesMatch?.map((c) => c.id) ?? []
+    query = clienteIds.length
+      ? query.or(`numero_apolice.ilike.%${termo}%,cliente_id.in.(${clienteIds.join(',')})`)
+      : query.ilike('numero_apolice', `%${termo}%`)
   }
 
   if (searchParams.mes && searchParams.ano) {
@@ -63,6 +84,26 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     return <Badge variant="success">Ativa</Badge>
   }
 
+  function sortHref(field: SortField) {
+    const params = new URLSearchParams()
+    if (searchParams.q) params.set('q', searchParams.q)
+    if (searchParams.mes) params.set('mes', searchParams.mes)
+    if (searchParams.ano) params.set('ano', searchParams.ano)
+    params.set('sort', field)
+    params.set('dir', sort === field && dir === 'asc' ? 'desc' : 'asc')
+    return `/apolices?${params.toString()}`
+  }
+
+  function SortableHeader({ field, label }: { field: SortField; label: string }) {
+    const active = sort === field
+    return (
+      <Link href={sortHref(field)} className="inline-flex items-center gap-1 hover:text-on-surface">
+        {label}
+        {active && (dir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)}
+      </Link>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -81,7 +122,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
           <input
             name="q"
             defaultValue={searchParams.q}
-            placeholder="Buscar por número de apólice..."
+            placeholder="Buscar por apólice ou cliente..."
             className="w-full h-10 pl-10 pr-4 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
@@ -113,14 +154,14 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
             <tr className="border-b border-outline-variant/30">
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 w-8"></th>
               <th className="label-caps text-on-surface-variant text-left px-3 py-3">Nº Apólice</th>
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Cliente</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3"><SortableHeader field="cliente" label="Cliente" /></th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Emissão</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Início</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Tipo</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Seguradora</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3"><SortableHeader field="seguradora" label="Seguradora" /></th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Vendedor</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Prêmio Total</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Vencimento</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3"><SortableHeader field="data_fim" label="Vencimento" /></th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Status</th>
               <th className="label-caps text-on-surface-variant text-right px-2 py-3">Ações</th>
             </tr>
