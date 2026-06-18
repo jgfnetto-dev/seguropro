@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Plus, Search, ArrowUp, ArrowDown } from 'lucide-react'
+import { Plus, Search, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -101,9 +101,13 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
   function SortableHeader({ field, label }: { field: SortField; label: string }) {
     const active = sort === field
     return (
-      <Link href={sortHref(field)} className="inline-flex items-center gap-1 hover:text-on-surface">
+      <Link href={sortHref(field)} title="Ordenar" className="inline-flex items-center gap-1 hover:text-on-surface">
         {label}
-        {active && (dir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)}
+        {active ? (
+          dir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+        ) : (
+          <ArrowUpDown className="w-3 h-3 opacity-40" />
+        )}
       </Link>
     )
   }
