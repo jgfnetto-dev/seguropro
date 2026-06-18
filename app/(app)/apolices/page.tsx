@@ -25,11 +25,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     .from('apolices')
     .select('*, cliente:clientes(segurado, cpf_cnpj), seguradora:seguradoras(nome)')
 
-  if (sort === 'cliente') {
-    query = query.order('segurado', { foreignTable: 'cliente', ascending })
-  } else if (sort === 'seguradora') {
-    query = query.order('nome', { foreignTable: 'seguradora', ascending })
-  } else {
+  if (sort === 'data_fim') {
     query = query.order('data_fim', { ascending })
   }
 
@@ -62,6 +58,14 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
       .select('id, apolice_id, numero_endosso, tipo_endosso, segurado, data_emissao, data_inicio, data_fim, pdf_url')
       .order('criado_em', { ascending: false }),
   ])
+
+  if (sort === 'cliente' || sort === 'seguradora') {
+    apolices?.sort((a, b) => {
+      const valorA = sort === 'cliente' ? a.cliente?.segurado ?? '' : a.seguradora?.nome ?? ''
+      const valorB = sort === 'cliente' ? b.cliente?.segurado ?? '' : b.seguradora?.nome ?? ''
+      return ascending ? valorA.localeCompare(valorB, 'pt-BR') : valorB.localeCompare(valorA, 'pt-BR')
+    })
+  }
 
   const contagemPorCliente = new Map<string, number>()
   todasApolices?.forEach((a) => {
