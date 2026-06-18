@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { EnviarWhatsappButton } from './enviar-whatsapp'
 import { CadastrarStatusButton } from './cadastrar-status-button'
+import { EnviarHistoricoButton } from './enviar-historico-button'
 import { formatDate } from '@/lib/utils'
 import { ChevronLeft, ChevronRight, Download, SlidersHorizontal } from 'lucide-react'
 import Link from 'next/link'
@@ -203,11 +204,21 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
                       {getStatusBadge(statusPorApolice.get(a.id))}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <CadastrarStatusButton
-                        apoliceId={a.id}
-                        numeroApolice={a.numero_apolice}
-                        clienteNome={a.cliente?.segurado ?? ''}
-                      />
+                      <div className="flex items-center justify-end gap-2">
+                        <CadastrarStatusButton
+                          apoliceId={a.id}
+                          numeroApolice={a.numero_apolice}
+                          clienteNome={a.cliente?.segurado ?? ''}
+                        />
+                        {(statusPorApolice.get(a.id) === 'Renovada' || statusPorApolice.get(a.id) === 'Cancelada') && (
+                          <EnviarHistoricoButton
+                            apoliceId={a.id}
+                            numeroApolice={a.numero_apolice}
+                            clienteNome={a.cliente?.segurado ?? ''}
+                            status={statusPorApolice.get(a.id) as 'Renovada' | 'Cancelada'}
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )

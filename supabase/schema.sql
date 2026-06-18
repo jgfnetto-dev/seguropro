@@ -94,6 +94,20 @@ CREATE TABLE IF NOT EXISTS endossos (
   criado_em timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS historico_renovacao (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  corretora_id uuid REFERENCES corretoras(id) NOT NULL,
+  numero_apolice text NOT NULL,
+  status_final text NOT NULL CHECK (status_final IN ('Renovada', 'Cancelada')),
+  apolice jsonb NOT NULL,
+  cliente jsonb NOT NULL,
+  seguradora jsonb,
+  conciliacoes jsonb NOT NULL DEFAULT '[]',
+  endossos jsonb NOT NULL DEFAULT '[]',
+  status_renovacoes jsonb NOT NULL DEFAULT '[]',
+  arquivado_em timestamptz DEFAULT now()
+);
+
 -- Enable RLS
 ALTER TABLE corretoras ENABLE ROW LEVEL SECURITY;
 ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
@@ -103,6 +117,7 @@ ALTER TABLE apolices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE status_renovacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conciliacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE endossos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE historico_renovacao ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies: users can only access their corretora's data
 DROP POLICY IF EXISTS "usuarios_own" ON usuarios;
@@ -130,6 +145,10 @@ CREATE POLICY "conciliacao_corretora" ON conciliacao FOR ALL
 
 DROP POLICY IF EXISTS "endossos_corretora" ON endossos;
 CREATE POLICY "endossos_corretora" ON endossos FOR ALL
+  USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
+
+DROP POLICY IF EXISTS "historico_renovacao_corretora" ON historico_renovacao;
+CREATE POLICY "historico_renovacao_corretora" ON historico_renovacao FOR ALL
   USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
 
 -- Storage bucket (run in Supabase dashboard or via API)

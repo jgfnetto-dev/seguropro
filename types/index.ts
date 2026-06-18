@@ -128,6 +128,20 @@ export interface EndossoExtractResult {
   data_fim?: string
 }
 
+export interface HistoricoRenovacao {
+  id: string
+  corretora_id: string
+  numero_apolice: string
+  status_final: 'Renovada' | 'Cancelada'
+  apolice: Apolice
+  cliente: Cliente
+  seguradora?: Seguradora | null
+  conciliacoes: Conciliacao[]
+  endossos: Endosso[]
+  status_renovacoes: StatusRenovacao[]
+  arquivado_em: string
+}
+
 export interface PdfExtractResult {
   segurado?: string
   cpf_cnpj?: string
