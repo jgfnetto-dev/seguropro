@@ -59,7 +59,7 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
     const diff = (new Date(a.data_fim).getTime() - hoje.getTime()) / 86400000
     return diff >= 0 && diff <= 7
   }).length ?? 0
-  const renovadas = 0
+  const renovadas = apolices?.filter((a) => statusPorApolice.get(a.id) === 'Renovada').length ?? 0
 
   const prevMes = mes === 0 ? 11 : mes - 1
   const prevAno = mes === 0 ? ano - 1 : ano
