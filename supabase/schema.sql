@@ -79,6 +79,21 @@ CREATE TABLE IF NOT EXISTS conciliacao (
   criado_em timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS endossos (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  corretora_id uuid REFERENCES corretoras(id) NOT NULL,
+  apolice_id uuid REFERENCES apolices(id) NOT NULL,
+  numero_apolice text NOT NULL,
+  numero_endosso text NOT NULL,
+  tipo_endosso text,
+  segurado text,
+  data_emissao date,
+  data_inicio date,
+  data_fim date,
+  pdf_url text,
+  criado_em timestamptz DEFAULT now()
+);
+
 -- Enable RLS
 ALTER TABLE corretoras ENABLE ROW LEVEL SECURITY;
 ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
@@ -87,6 +102,7 @@ ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE apolices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE status_renovacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conciliacao ENABLE ROW LEVEL SECURITY;
+ALTER TABLE endossos ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies: users can only access their corretora's data
 DROP POLICY IF EXISTS "usuarios_own" ON usuarios;
@@ -110,6 +126,10 @@ CREATE POLICY "status_renovacao_corretora" ON status_renovacao FOR ALL
 
 DROP POLICY IF EXISTS "conciliacao_corretora" ON conciliacao;
 CREATE POLICY "conciliacao_corretora" ON conciliacao FOR ALL
+  USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
+
+DROP POLICY IF EXISTS "endossos_corretora" ON endossos;
+CREATE POLICY "endossos_corretora" ON endossos FOR ALL
   USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
 
 -- Storage bucket (run in Supabase dashboard or via API)

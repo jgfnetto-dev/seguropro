@@ -104,6 +104,30 @@ export interface Conciliacao {
   criado_em: string
 }
 
+export interface Endosso {
+  id: string
+  corretora_id: string
+  apolice_id: string
+  numero_apolice: string
+  numero_endosso: string
+  tipo_endosso?: string
+  segurado?: string
+  data_emissao?: string
+  data_inicio?: string
+  data_fim?: string
+  pdf_url?: string
+  criado_em: string
+}
+
+export interface EndossoExtractResult {
+  numero_endosso?: string
+  tipo_endosso?: string
+  segurado?: string
+  data_emissao?: string
+  data_inicio?: string
+  data_fim?: string
+}
+
 export interface PdfExtractResult {
   segurado?: string
   cpf_cnpj?: string

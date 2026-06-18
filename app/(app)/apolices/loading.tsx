@@ -1,5 +1,5 @@
 import { TableSkeleton } from '@/components/table-skeleton'
 
 export default function Loading() {
-  return <TableSkeleton cols={11} />
+  return <TableSkeleton cols={12} />
 }

@@ -3,12 +3,12 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Plus, Search, Download } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { formatDate, formatCurrency, MESES, anosDisponiveis } from '@/lib/utils'
-import { DeleteApoliceButton } from './delete-button'
+import { MESES, anosDisponiveis } from '@/lib/utils'
+import { ApoliceRow } from './apolice-row'
 
 export default async function ApolicesPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string } }) {
   const supabase = await createServerSupabaseClient()
@@ -33,14 +33,25 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
   }
 
-  const [{ data: apolices }, { data: todasApolices }] = await Promise.all([
+  const [{ data: apolices }, { data: todasApolices }, { data: endossos }] = await Promise.all([
     query,
     supabase.from('apolices').select('cliente_id'),
+    supabase
+      .from('endossos')
+      .select('id, apolice_id, numero_endosso, tipo_endosso, segurado, data_emissao, data_inicio, data_fim')
+      .order('criado_em', { ascending: false }),
   ])
 
   const contagemPorCliente = new Map<string, number>()
   todasApolices?.forEach((a) => {
     contagemPorCliente.set(a.cliente_id, (contagemPorCliente.get(a.cliente_id) ?? 0) + 1)
+  })
+
+  const endossosPorApolice = new Map<string, NonNullable<typeof endossos>>()
+  endossos?.forEach((e) => {
+    const lista = endossosPorApolice.get(e.apolice_id) ?? []
+    lista.push(e)
+    endossosPorApolice.set(e.apolice_id, lista)
   })
 
   function getStatusBadge(dataFim: string) {
@@ -100,6 +111,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
         <table className="w-full">
           <thead>
             <tr className="border-b border-outline-variant/30">
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 w-8"></th>
               <th className="label-caps text-on-surface-variant text-left px-3 py-3">Nº Apólice</th>
               <th className="label-caps text-on-surface-variant text-left px-3 py-3">Cliente</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Emissão</th>
@@ -115,47 +127,18 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
           </thead>
           <tbody>
             {apolices?.map((a, i: number) => (
-              <tr key={a.id} className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${i % 2 === 0 ? '' : 'bg-surface-container-low/40'}`}>
-                <td className="px-3 py-3">
-                  <Link href={`/apolices/${a.id}`} className="text-body-sm font-medium text-secondary hover:underline">
-                    {a.numero_apolice}
-                  </Link>
-                </td>
-                <td className="px-3 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
-                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.data_emissao ? formatDate(a.data_emissao) : '—'}</td>
-                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
-                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
-                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.seguradora?.nome}</td>
-                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.vendedor || '—'}</td>
-                <td className="px-2 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_total)}</td>
-                <td className="px-2 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
-                <td className="px-2 py-3">{getStatusBadge(a.data_fim)}</td>
-                <td className="px-2 py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    {a.pdf_url && (
-                      <a
-                        href={a.pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Baixar PDF da apólice"
-                        className="p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
-                    )}
-                    <DeleteApoliceButton
-                      id={a.id}
-                      numeroApolice={a.numero_apolice}
-                      clienteNome={a.cliente?.segurado ?? ''}
-                      isUltimaApoliceDoCliente={(contagemPorCliente.get(a.cliente_id) ?? 0) <= 1}
-                    />
-                  </div>
-                </td>
-              </tr>
+              <ApoliceRow
+                key={a.id}
+                apolice={a}
+                index={i}
+                isUltimaApoliceDoCliente={(contagemPorCliente.get(a.cliente_id) ?? 0) <= 1}
+                endossos={endossosPorApolice.get(a.id) ?? []}
+                statusBadge={getStatusBadge(a.data_fim)}
+              />
             ))}
             {!apolices?.length && (
               <tr>
-                <td colSpan={11} className="text-center py-12 text-body-sm text-on-surface-variant">
+                <td colSpan={12} className="text-center py-12 text-body-sm text-on-surface-variant">
                   Nenhuma apólice cadastrada
                 </td>
               </tr>
