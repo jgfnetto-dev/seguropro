@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -131,12 +131,25 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
                 <td className="px-2 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
                 <td className="px-2 py-3">{getStatusBadge(a.data_fim)}</td>
                 <td className="px-2 py-3 text-right">
-                  <DeleteApoliceButton
-                    id={a.id}
-                    numeroApolice={a.numero_apolice}
-                    clienteNome={a.cliente?.segurado ?? ''}
-                    isUltimaApoliceDoCliente={(contagemPorCliente.get(a.cliente_id) ?? 0) <= 1}
-                  />
+                  <div className="flex items-center justify-end gap-2">
+                    {a.pdf_url && (
+                      <a
+                        href={a.pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Baixar PDF da apólice"
+                        className="p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+                      >
+                        <Download className="w-4 h-4" />
+                      </a>
+                    )}
+                    <DeleteApoliceButton
+                      id={a.id}
+                      numeroApolice={a.numero_apolice}
+                      clienteNome={a.cliente?.segurado ?? ''}
+                      isUltimaApoliceDoCliente={(contagemPorCliente.get(a.cliente_id) ?? 0) <= 1}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
