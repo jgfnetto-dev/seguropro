@@ -8,7 +8,7 @@ async function getCorretoraId(supabase: Awaited<ReturnType<typeof createServerSu
   return data?.corretora_id ?? null
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const supabase = await createServerSupabaseClient()
   const corretora_id = await getCorretoraId(supabase)
   if (!corretora_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
