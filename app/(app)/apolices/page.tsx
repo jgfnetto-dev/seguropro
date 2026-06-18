@@ -100,33 +100,37 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
         <table className="w-full">
           <thead>
             <tr className="border-b border-outline-variant/30">
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Nº Apólice</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Cliente</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Tipo</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Seguradora</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Vendedor</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Prêmio Total</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Vencimento</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Status</th>
-              <th className="label-caps text-on-surface-variant text-right px-4 py-3">Ações</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Nº Apólice</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Cliente</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Emissão</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Início</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Tipo</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Seguradora</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Vendedor</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Prêmio Total</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Vencimento</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Status</th>
+              <th className="label-caps text-on-surface-variant text-right px-2 py-3">Ações</th>
             </tr>
           </thead>
           <tbody>
             {apolices?.map((a, i: number) => (
               <tr key={a.id} className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${i % 2 === 0 ? '' : 'bg-surface-container-low/40'}`}>
-                <td className="px-4 py-3">
+                <td className="px-3 py-3">
                   <Link href={`/apolices/${a.id}`} className="text-body-sm font-medium text-secondary hover:underline">
                     {a.numero_apolice}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
-                <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
-                <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.seguradora?.nome}</td>
-                <td className="px-4 py-3 text-body-sm text-on-surface-variant">{a.vendedor || '—'}</td>
-                <td className="px-4 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_total)}</td>
-                <td className="px-4 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
-                <td className="px-4 py-3">{getStatusBadge(a.data_fim)}</td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-3 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
+                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.data_emissao ? formatDate(a.data_emissao) : '—'}</td>
+                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
+                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
+                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.seguradora?.nome}</td>
+                <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.vendedor || '—'}</td>
+                <td className="px-2 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_total)}</td>
+                <td className="px-2 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
+                <td className="px-2 py-3">{getStatusBadge(a.data_fim)}</td>
+                <td className="px-2 py-3 text-right">
                   <DeleteApoliceButton
                     id={a.id}
                     numeroApolice={a.numero_apolice}
@@ -138,7 +142,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
             ))}
             {!apolices?.length && (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-body-sm text-on-surface-variant">
+                <td colSpan={11} className="text-center py-12 text-body-sm text-on-surface-variant">
                   Nenhuma apólice cadastrada
                 </td>
               </tr>
