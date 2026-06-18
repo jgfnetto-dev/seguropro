@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins } from 'lucide-react'
+import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/utils'
 
@@ -48,6 +48,7 @@ export default async function DashboardPage() {
     { href: '/renovacoes', label: 'Renovações', icon: RefreshCw },
     { href: '/seguradoras', label: 'Seguradoras', icon: Building2 },
     { href: '/conciliacao', label: 'Conciliação', icon: HandCoins },
+    { href: '/historico-renovacao', label: 'Histórico', icon: Archive },
   ]
 
   return (
