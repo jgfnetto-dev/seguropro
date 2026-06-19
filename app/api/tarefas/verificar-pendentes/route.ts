@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { sendWhatsAppMessage } from '@/lib/evolution'
-import { formatDate } from '@/lib/utils'
+import { enviarLembretesPendentes } from '@/lib/tarefas-lembrete'
 
 export async function POST(_req: NextRequest) {
   const supabase = await createServerSupabaseClient()
@@ -24,7 +23,7 @@ export async function POST(_req: NextRequest) {
 
   const { data: pendentes } = await supabase
     .from('tarefas')
-    .select('*')
+    .select('id, data, hora, tarefa')
     .eq('usuario_id', usuario.id)
     .eq('whatsapp_enviado', false)
     .or(`data.lt.${hoje},and(data.eq.${hoje},hora.lte.${horaAtual})`)
@@ -33,17 +32,6 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ sent: 0 })
   }
 
-  let enviadas = 0
-  for (const tarefa of pendentes) {
-    const texto = `📅 *Lembrete de Tarefa* — SeguroPro\n\n${tarefa.tarefa}\n\nAgendado para ${formatDate(tarefa.data)} às ${tarefa.hora.slice(0, 5)}.`
-    try {
-      await sendWhatsAppMessage(usuario.telefone_whatsapp, texto)
-      await supabase.from('tarefas').update({ whatsapp_enviado: true }).eq('id', tarefa.id)
-      enviadas++
-    } catch {
-      // Mantém a tarefa pendente para nova tentativa na próxima verificação.
-    }
-  }
-
+  const enviadas = await enviarLembretesPendentes(supabase, pendentes, usuario.telefone_whatsapp)
   return NextResponse.json({ sent: enviadas })
 }
