@@ -54,9 +54,11 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Informe data, hora e a tarefa.' }, { status: 400 })
   }
 
+  // Não reseta whatsapp_enviado: uma tarefa já enviada não deve ser notificada de novo,
+  // mesmo que o texto/data/hora sejam corrigidos depois do envio.
   const { data: registro, error } = await supabase
     .from('tarefas')
-    .update({ data, hora, tarefa, whatsapp_enviado: false })
+    .update({ data, hora, tarefa })
     .eq('id', id)
     .eq('usuario_id', usuario.id)
     .select()
@@ -72,6 +74,14 @@ export async function DELETE(req: NextRequest) {
   if (!usuario) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const id = req.nextUrl.searchParams.get('id')
+  const enviadas = req.nextUrl.searchParams.get('enviadas')
+
+  if (enviadas === 'true') {
+    const { error } = await supabase.from('tarefas').delete().eq('usuario_id', usuario.id).eq('whatsapp_enviado', true)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const { error } = await supabase.from('tarefas').delete().eq('id', id).eq('usuario_id', usuario.id)

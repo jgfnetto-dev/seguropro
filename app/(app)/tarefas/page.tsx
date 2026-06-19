@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatDate } from '@/lib/utils'
 import { TarefaButton } from './tarefa-button'
 import { DeleteTarefaButton } from './delete-button'
+import { ExcluirEnviadasButton } from './excluir-enviadas-button'
 import type { Tarefa } from '@/types'
 
 export default async function TarefasPage() {
@@ -32,7 +33,10 @@ export default async function TarefasPage() {
             Organize seus compromissos e receba um lembrete via WhatsApp na data e hora agendadas.
           </p>
         </div>
-        <TarefaButton />
+        <div className="flex items-center gap-2">
+          <ExcluirEnviadasButton quantidade={(tarefas as Tarefa[] | null)?.filter((t) => t.whatsapp_enviado).length ?? 0} />
+          <TarefaButton />
+        </div>
       </div>
 
       <Card>
