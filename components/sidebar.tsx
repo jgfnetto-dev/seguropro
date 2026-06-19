@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive } from 'lucide-react'
+import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { cn } from '@/lib/utils'
 import { APP_VERSION } from '@/lib/version'
@@ -14,6 +14,7 @@ const navLinks = [
   { href: '/seguradoras', label: 'Seguradoras', icon: Building2 },
   { href: '/conciliacao', label: 'Conciliação', icon: HandCoins },
   { href: '/historico-renovacao', label: 'Histórico', icon: Archive },
+  { href: '/tarefas', label: 'Tarefas', icon: ListChecks },
   { href: '/usuarios', label: 'Usuários', icon: UserCog },
 ]
 

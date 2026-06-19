@@ -32,6 +32,7 @@ export default function LoginPage() {
 
     // Disparo em background: não bloqueia o redirecionamento nem trava o login em caso de falha.
     fetch('/api/whatsapp/renovacoes-login', { method: 'POST' }).catch(() => {})
+    fetch('/api/tarefas/verificar-pendentes', { method: 'POST' }).catch(() => {})
 
     router.push('/dashboard')
     router.refresh()

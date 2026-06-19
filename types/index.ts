@@ -142,6 +142,17 @@ export interface HistoricoRenovacao {
   arquivado_em: string
 }
 
+export interface Tarefa {
+  id: string
+  corretora_id: string
+  usuario_id: string
+  data: string
+  hora: string
+  tarefa: string
+  whatsapp_enviado: boolean
+  criado_em: string
+}
+
 export interface PdfExtractResult {
   segurado?: string
   cpf_cnpj?: string

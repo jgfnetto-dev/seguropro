@@ -108,6 +108,17 @@ CREATE TABLE IF NOT EXISTS historico_renovacao (
   arquivado_em timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS tarefas (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  corretora_id uuid REFERENCES corretoras(id) NOT NULL,
+  usuario_id uuid REFERENCES usuarios(id) NOT NULL,
+  data date NOT NULL,
+  hora time NOT NULL,
+  tarefa text NOT NULL,
+  whatsapp_enviado boolean NOT NULL DEFAULT false,
+  criado_em timestamptz DEFAULT now()
+);
+
 -- Enable RLS
 ALTER TABLE corretoras ENABLE ROW LEVEL SECURITY;
 ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
@@ -118,6 +129,7 @@ ALTER TABLE status_renovacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conciliacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE endossos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE historico_renovacao ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tarefas ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies: users can only access their corretora's data
 DROP POLICY IF EXISTS "usuarios_own" ON usuarios;
@@ -149,6 +161,10 @@ CREATE POLICY "endossos_corretora" ON endossos FOR ALL
 
 DROP POLICY IF EXISTS "historico_renovacao_corretora" ON historico_renovacao;
 CREATE POLICY "historico_renovacao_corretora" ON historico_renovacao FOR ALL
+  USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
+
+DROP POLICY IF EXISTS "tarefas_corretora" ON tarefas;
+CREATE POLICY "tarefas_corretora" ON tarefas FOR ALL
   USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
 
 -- Storage bucket (run in Supabase dashboard or via API)

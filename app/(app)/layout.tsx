@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { Sidebar } from '@/components/sidebar'
+import { TarefasChecker } from '@/components/tarefas-checker'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient()
@@ -18,6 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-background">
+      <TarefasChecker />
       <Sidebar userName={usuario?.nome} />
       <div className="md:pl-60">
         <main className="max-w-[1600px] mx-auto px-6 py-8 pb-20 md:pb-8">
