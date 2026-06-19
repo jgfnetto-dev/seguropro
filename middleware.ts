@@ -3,6 +3,12 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
+  // Endpoints de cron são chamados por serviços externos sem sessão de navegador;
+  // a autorização deles é feita via CRON_SECRET dentro da própria rota.
+  if (request.nextUrl.pathname.startsWith('/api/cron')) {
+    return NextResponse.next()
+  }
+
   let response = NextResponse.next({ request: { headers: request.headers } })
 
   const supabase = createServerClient(
