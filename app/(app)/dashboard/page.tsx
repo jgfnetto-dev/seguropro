@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive } from 'lucide-react'
+import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive, ArchiveRestore } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/utils'
 
@@ -18,6 +18,7 @@ export default async function DashboardPage() {
     { count: totalApolices },
     { data: renovacoesMes },
     { data: alertas },
+    { data: statusRows },
   ] = await Promise.all([
     supabase.from('usuarios').select('nome').eq('id', session.user.id).single(),
     supabase.from('clientes').select('*', { count: 'exact', head: true }),
@@ -32,9 +33,18 @@ export default async function DashboardPage() {
       .lte('data_fim', new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0])
       .order('data_fim', { ascending: true })
       .limit(3),
+    supabase.from('status_renovacao').select('apolice_id, status').order('criado_em', { ascending: false }),
   ])
 
   const primeiroNome = usuario?.nome?.split(' ')[0] ?? 'Corretor'
+
+  const statusFinalPorApolice = new Map<string, string>()
+  statusRows?.forEach((s) => {
+    if (!statusFinalPorApolice.has(s.apolice_id)) statusFinalPorApolice.set(s.apolice_id, s.status)
+  })
+  const pendentesHistorico = Array.from(statusFinalPorApolice.values()).filter(
+    (s) => s === 'Renovada' || s === 'Cancelada'
+  ).length
 
   const stats = [
     { label: 'Total de Clientes', value: totalClientes ?? 0, icon: Users, href: '/clientes' },
@@ -95,6 +105,21 @@ export default async function DashboardPage() {
           <h2 className="text-h3 text-on-surface mb-4">Alertas Urgentes</h2>
           <Card>
             <CardContent className="p-4 space-y-3">
+              {pendentesHistorico > 0 && (
+                <Link href="/renovacoes" className="block">
+                  <div className="flex items-start gap-3 p-3 rounded bg-amber-50 border-2 border-amber-400 animate-pulse hover:animate-none hover:bg-amber-100 transition-colors">
+                    <ArchiveRestore className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-body-sm font-bold text-on-surface">
+                        ⚠ Existem {pendentesHistorico} renovaç{pendentesHistorico === 1 ? 'ão' : 'ões'} com status de Renovada ou Cancelada
+                      </p>
+                      <p className="text-body-sm text-on-surface-variant">
+                        Você pode enviá-la{pendentesHistorico === 1 ? '' : 's'} para o histórico. Clique para ir até Renovações.
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              )}
               {alertas && alertas.length > 0 ? (
                 alertas.map((a) => (
                   <div key={a.id} className="flex items-start gap-3 p-3 rounded bg-error/5 border border-error/10">
@@ -107,11 +132,11 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                 ))
-              ) : (
+              ) : pendentesHistorico === 0 ? (
                 <p className="text-body-sm text-on-surface-variant text-center py-4">
                   Nenhum alerta urgente
                 </p>
-              )}
+              ) : null}
             </CardContent>
           </Card>
         </div>
