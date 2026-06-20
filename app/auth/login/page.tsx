@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Mail, Lock, Eye, EyeOff } from 'lucide-react'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { getSupabaseBrowser, getSupabaseImplicit } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
@@ -26,7 +26,7 @@ export default function LoginPage() {
   async function handleRecuperarSenha(e: React.FormEvent) {
     e.preventDefault()
     setEnviandoRecuperacao(true)
-    const supabase = getSupabaseBrowser()
+    const supabase = getSupabaseImplicit()
     const { error } = await supabase.auth.resetPasswordForEmail(emailRecuperar, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     })
