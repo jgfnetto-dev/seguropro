@@ -23,6 +23,7 @@ function ResetPasswordForm() {
   const { showToast, ToastComponent } = useToast()
   const [verificando, setVerificando] = useState(true)
   const [linkValido, setLinkValido] = useState(false)
+  const [motivoInvalido, setMotivoInvalido] = useState('')
   const [senha, setSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -31,10 +32,30 @@ function ResetPasswordForm() {
   useEffect(() => {
     async function validarLink() {
       const supabase = getSupabaseBrowser()
-      const code = searchParams?.get('code')
 
+      const erroDescricao = searchParams?.get('error_description')
+      if (erroDescricao) {
+        setMotivoInvalido(decodeURIComponent(erroDescricao))
+        setVerificando(false)
+        return
+      }
+
+      const code = searchParams?.get('code')
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) setMotivoInvalido(error.message)
+        setLinkValido(!error)
+        setVerificando(false)
+        return
+      }
+
+      // Formato legado (implicit flow): tokens vêm no hash da URL, não na query string.
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const accessToken = hash.get('access_token')
+      const refreshToken = hash.get('refresh_token')
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        if (error) setMotivoInvalido(error.message)
         setLinkValido(!error)
         setVerificando(false)
         return
@@ -93,6 +114,9 @@ function ResetPasswordForm() {
               <p className="text-body-sm text-error">
                 Este link de recuperação é inválido ou expirou.
               </p>
+              {motivoInvalido && (
+                <p className="text-xs text-on-surface-variant">{motivoInvalido}</p>
+              )}
               <a href="/auth/login" className="text-body-sm text-secondary hover:underline">
                 Solicitar novo link
               </a>
