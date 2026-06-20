@@ -31,8 +31,11 @@ export default function LoginPage() {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     })
     setEnviandoRecuperacao(false)
-    if (error) {
-      showToast(`Erro ao enviar e-mail: ${error.message}`, 'error')
+    // O endpoint de recuperação responde com corpo vazio ({}) em caso de sucesso;
+    // algumas versões do client interpretam isso como erro mesmo o e-mail tendo sido enviado.
+    const erroReal = error && error.message && error.message.trim() !== '{}'
+    if (erroReal) {
+      showToast(`Erro ao enviar e-mail: ${error!.message}`, 'error')
       return
     }
     showToast('Se o e-mail estiver cadastrado, você receberá um link de recuperação.', 'success')
