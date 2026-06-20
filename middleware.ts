@@ -36,6 +36,12 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   const { pathname } = request.nextUrl
 
+  // /auth/reset-password nunca redireciona, mesmo com sessão ativa: o usuário pode
+  // estar trocando a senha a partir do link de recuperação recebido por e-mail.
+  if (pathname.startsWith('/auth/reset-password')) {
+    return response
+  }
+
   const publicPaths = ['/auth/login']
   const isPublic = publicPaths.some((p) => pathname.startsWith(p))
 
