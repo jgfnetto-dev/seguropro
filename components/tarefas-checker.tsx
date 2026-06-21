@@ -15,7 +15,9 @@ export function TarefasChecker() {
       fetch('/api/tarefas/verificar-pendentes', { method: 'POST' })
         .then((res) => res.json())
         .then((data) => {
-          if (data?.sent > 0) router.refresh()
+          // Na tela de Tarefas, atualiza sempre: o envio pode ter sido feito por outra aba,
+          // outro login ou pelo cron, e não apenas por esta chamada específica.
+          if (data?.sent > 0 || naTelaDeTarefas) router.refresh()
         })
         .catch(() => {})
     }
