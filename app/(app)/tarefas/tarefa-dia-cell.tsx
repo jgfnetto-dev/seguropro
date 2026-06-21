@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { cn, NOMES_MESES_ABREV } from '@/lib/utils'
 import { TarefaButton } from './tarefa-button'
 import type { Tarefa } from '@/types'
@@ -38,14 +38,14 @@ function Chip({ tarefa }: { tarefa: Tarefa }) {
 }
 
 export function TarefaDiaCell({ dia, mesAbrev, dataKey, noMesAtual, hoje, tarefas }: Props) {
-  const [expandido, setExpandido] = useState(false)
   const visiveis = tarefas.slice(0, MAX_VISIVEL)
   const restantes = tarefas.length - visiveis.length
+  const labelDia = noMesAtual ? dia : `${dia} de ${NOMES_MESES_ABREV[mesAbrev]}`
 
   return (
     <div
       className={cn(
-        'relative border border-outline-variant/20 p-1.5 h-full flex flex-col gap-1 overflow-hidden',
+        'border border-outline-variant/20 p-1.5 h-full flex flex-col gap-1 overflow-hidden',
         !noMesAtual && 'bg-surface-container-low/40'
       )}
     >
@@ -57,7 +57,7 @@ export function TarefaDiaCell({ dia, mesAbrev, dataKey, noMesAtual, hoje, tarefa
             hoje && 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-on-primary font-semibold'
           )}
         >
-          {noMesAtual ? dia : `${dia} de ${NOMES_MESES_ABREV[mesAbrev]}`}
+          {labelDia}
         </span>
         <TarefaButton
           dataPadrao={dataKey}
@@ -75,50 +75,23 @@ export function TarefaDiaCell({ dia, mesAbrev, dataKey, noMesAtual, hoje, tarefa
       <div className="flex flex-col gap-1 min-h-0 flex-1">
         {visiveis.map((t) => <Chip key={t.id} tarefa={t} />)}
         {restantes > 0 && (
-          <button
-            onClick={() => setExpandido(true)}
-            className="w-full text-left text-[11px] font-medium text-on-surface-variant hover:text-on-surface px-1.5 shrink-0"
-          >
-            +{restantes} mais
-          </button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="w-full text-left text-[11px] font-medium text-on-surface-variant hover:text-on-surface px-1.5 shrink-0">
+                +{restantes} mais
+              </button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Tarefas do dia {labelDia}</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto">
+                {tarefas.map((t) => <Chip key={t.id} tarefa={t} />)}
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
-
-      {expandido && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setExpandido(false)} />
-          <div className="absolute top-0 left-0 right-0 z-50 bg-card border border-primary rounded shadow-overlay p-1.5 flex flex-col gap-1 max-h-[280px]">
-            <div className="flex items-center justify-between shrink-0">
-              <span className="text-xs font-medium text-on-surface">
-                {noMesAtual ? dia : `${dia} de ${NOMES_MESES_ABREV[mesAbrev]}`}
-              </span>
-              <div className="flex items-center gap-1">
-                <TarefaButton
-                  dataPadrao={dataKey}
-                  trigger={
-                    <button
-                      title="Nova tarefa neste dia"
-                      className="w-5 h-5 flex items-center justify-center rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface shrink-0"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  }
-                />
-                <button
-                  onClick={() => setExpandido(false)}
-                  title="Fechar"
-                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface shrink-0"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 overflow-y-auto">
-              {tarefas.map((t) => <Chip key={t.id} tarefa={t} />)}
-            </div>
-          </div>
-        </>
-      )}
     </div>
   )
 }

@@ -51,7 +51,7 @@ export default async function TarefasPage({ searchParams }: { searchParams: { me
   const nextAno = mes === 11 ? ano + 1 : ano
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] gap-4">
+    <div className="flex flex-col h-[calc(100vh-230px)] min-h-[500px] gap-4">
       <div className="flex items-center justify-between flex-wrap gap-4 shrink-0">
         <div>
           <h1 className="text-h1 text-on-surface">Tarefas e Agendamentos</h1>
