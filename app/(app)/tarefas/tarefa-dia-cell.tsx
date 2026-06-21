@@ -17,11 +17,11 @@ export function TarefaDiaCell({ dia, mesAbrev, dataKey, noMesAtual, hoje, tarefa
   return (
     <div
       className={cn(
-        'border border-outline-variant/20 p-1.5 min-h-[110px] flex flex-col gap-1',
+        'border border-outline-variant/20 p-1.5 h-[110px] flex flex-col gap-1 overflow-hidden',
         !noMesAtual && 'bg-surface-container-low/40'
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between shrink-0">
         <span
           className={cn(
             'text-xs font-medium',
@@ -44,7 +44,7 @@ export function TarefaDiaCell({ dia, mesAbrev, dataKey, noMesAtual, hoje, tarefa
         />
       </div>
 
-      <div className="flex flex-col gap-1 overflow-y-auto">
+      <div className="flex flex-col gap-1 overflow-y-auto min-h-0 flex-1">
         {tarefas.map((t) => (
           <TarefaButton
             key={t.id}
