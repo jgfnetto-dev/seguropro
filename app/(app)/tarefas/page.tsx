@@ -51,8 +51,8 @@ export default async function TarefasPage({ searchParams }: { searchParams: { me
   const nextAno = mes === 11 ? ano + 1 : ano
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-4 shrink-0">
         <div>
           <h1 className="text-h1 text-on-surface">Tarefas e Agendamentos</h1>
           <p className="text-body-sm text-on-surface-variant mt-1">
@@ -65,7 +65,7 @@ export default async function TarefasPage({ searchParams }: { searchParams: { me
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between shrink-0">
         <Link href="/tarefas">
           <Button variant="outline" size="sm">Hoje</Button>
         </Link>
@@ -85,13 +85,16 @@ export default async function TarefasPage({ searchParams }: { searchParams: { me
         <div className="w-20" />
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-7 border-b border-outline-variant/30">
+      <Card className="flex-1 flex flex-col">
+        <div className="grid grid-cols-7 border-b border-outline-variant/30 shrink-0">
           {NOMES_DIAS_SEMANA.map((nome) => (
             <div key={nome} className="label-caps text-on-surface-variant text-left px-3 py-2">{nome}</div>
           ))}
         </div>
-        <div className="grid grid-cols-7">
+        <div
+          className="grid grid-cols-7 flex-1 min-h-0"
+          style={{ gridTemplateRows: `repeat(${semanas.length}, 1fr)` }}
+        >
           {semanas.flatMap((semana) =>
             semana.map((data) => {
               const dataKey = toDateKey(data)
