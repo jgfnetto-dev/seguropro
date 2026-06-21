@@ -95,3 +95,27 @@ export function getMonthGrid(ano: number, mes: number): Date[][] {
   for (let i = 0; i < dias.length; i += 7) semanas.push(dias.slice(i, i + 7))
   return semanas
 }
+
+// Calcula a data e hora atuais sempre no horário de Brasília, independente do fuso
+// horário configurado no servidor (importante para tarefas agendadas/lembretes,
+// já que o usuário sempre informa a data/hora pensando no horário local do Brasil).
+export function getAgoraBrasil() {
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date())
+
+  const mapa: Record<string, string> = {}
+  partes.forEach((p) => { mapa[p.type] = p.value })
+
+  return {
+    dataKey: `${mapa.year}-${mapa.month}-${mapa.day}`,
+    horaKey: `${mapa.hour}:${mapa.minute}:${mapa.second}`,
+  }
+}

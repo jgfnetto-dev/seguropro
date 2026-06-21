@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { enviarLembretesPendentes } from '@/lib/tarefas-lembrete'
+import { getAgoraBrasil } from '@/lib/utils'
 
 export async function POST(_req: NextRequest) {
   const supabase = await createServerSupabaseClient()
@@ -17,9 +18,7 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ sent: 0, reason: 'Telefone não configurado no perfil.' })
   }
 
-  const agora = new Date()
-  const hoje = agora.toISOString().split('T')[0]
-  const horaAtual = agora.toTimeString().slice(0, 8)
+  const { dataKey: hoje, horaKey: horaAtual } = getAgoraBrasil()
 
   const { data: pendentes } = await supabase
     .from('tarefas')

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { enviarLembretesPendentes } from '@/lib/tarefas-lembrete'
+import { getAgoraBrasil } from '@/lib/utils'
 
 function autorizado(req: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -23,9 +24,7 @@ async function handle(req: NextRequest) {
 
   const supabase = createServiceClient()
 
-  const agora = new Date()
-  const hoje = agora.toISOString().split('T')[0]
-  const horaAtual = agora.toTimeString().slice(0, 8)
+  const { dataKey: hoje, horaKey: horaAtual } = getAgoraBrasil()
 
   const { data: pendentes, error } = await supabase
     .from('tarefas')
