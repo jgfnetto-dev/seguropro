@@ -55,7 +55,7 @@ export function TarefaDiaCell({ dia, mesAbrev, dataKey, noMesAtual, hoje, tarefa
                 className={cn(
                   'w-full text-left text-[11px] leading-tight px-1.5 py-1 rounded truncate',
                   t.whatsapp_enviado
-                    ? 'bg-surface-container text-on-surface-variant'
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
                     : 'bg-primary/10 text-primary hover:bg-primary/20'
                 )}
               >
