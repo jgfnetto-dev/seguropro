@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Pencil } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -12,17 +12,20 @@ import type { Tarefa } from '@/types'
 
 interface Props {
   tarefa?: Tarefa
+  dataPadrao?: string
+  trigger?: React.ReactNode
 }
 
-export function TarefaButton({ tarefa }: Props) {
+export function TarefaButton({ tarefa, dataPadrao, trigger }: Props) {
   const router = useRouter()
   const { showToast, ToastComponent } = useToast()
   const isEdit = !!tarefa
   const [open, setOpen] = useState(false)
-  const [data, setData] = useState(tarefa?.data ?? new Date().toISOString().split('T')[0])
+  const [data, setData] = useState(tarefa?.data ?? dataPadrao ?? new Date().toISOString().split('T')[0])
   const [hora, setHora] = useState(tarefa?.hora?.slice(0, 5) ?? '')
   const [texto, setTexto] = useState(tarefa?.tarefa ?? '')
   const [loading, setLoading] = useState(false)
+  const [excluindo, setExcluindo] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -50,12 +53,30 @@ export function TarefaButton({ tarefa }: Props) {
     }
   }
 
+  async function handleDelete() {
+    if (!tarefa) return
+    if (!confirm(`Excluir a tarefa "${tarefa.tarefa}"?`)) return
+
+    setExcluindo(true)
+    const res = await fetch(`/api/tarefas?id=${tarefa.id}`, { method: 'DELETE' })
+    const result = await res.json()
+    setExcluindo(false)
+
+    if (!res.ok) {
+      showToast(`Erro ao excluir: ${result.error ?? 'falha desconhecida'}`, 'error')
+      return
+    }
+    showToast('Tarefa excluída.', 'success')
+    setOpen(false)
+    router.refresh()
+  }
+
   return (
     <>
       {ToastComponent}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          {isEdit ? (
+          {trigger ?? (isEdit ? (
             <button
               title="Editar tarefa"
               className="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
@@ -64,7 +85,7 @@ export function TarefaButton({ tarefa }: Props) {
             </button>
           ) : (
             <Button className="gap-2"><Plus className="w-4 h-4" /> Nova Tarefa</Button>
-          )}
+          ))}
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -93,9 +114,16 @@ export function TarefaButton({ tarefa }: Props) {
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar Tarefa'}</Button>
+            <div className="flex justify-between items-center gap-3 pt-2">
+              {isEdit ? (
+                <Button type="button" variant="outline" className="gap-2 text-error hover:bg-error/10" onClick={handleDelete} disabled={excluindo}>
+                  <Trash2 className="w-4 h-4" /> {excluindo ? 'Excluindo...' : 'Excluir'}
+                </Button>
+              ) : <span />}
+              <div className="flex gap-3">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+                <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar Tarefa'}</Button>
+              </div>
             </div>
           </form>
         </DialogContent>

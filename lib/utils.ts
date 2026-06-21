@@ -60,3 +60,38 @@ export function anosDisponiveis() {
   for (let ano = anoAtual + 1; ano >= anoAtual - 5; ano--) anos.push(ano)
   return anos
 }
+
+export const NOMES_MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+export const NOMES_MESES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+
+export const NOMES_DIAS_SEMANA = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado']
+
+export function toDateKey(date: Date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+// Monta a grade de semanas (cada semana com 7 dias) cobrindo o mês inteiro,
+// incluindo os dias do mês anterior/seguinte que completam a primeira/última semana.
+export function getMonthGrid(ano: number, mes: number): Date[][] {
+  const primeiroDia = new Date(ano, mes, 1)
+  const ultimoDia = new Date(ano, mes + 1, 0)
+
+  const inicio = new Date(primeiroDia)
+  inicio.setDate(inicio.getDate() - inicio.getDay())
+
+  const fim = new Date(ultimoDia)
+  fim.setDate(fim.getDate() + (6 - fim.getDay()))
+
+  const dias: Date[] = []
+  for (const d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
+    dias.push(new Date(d))
+  }
+
+  const semanas: Date[][] = []
+  for (let i = 0; i < dias.length; i += 7) semanas.push(dias.slice(i, i + 7))
+  return semanas
+}
