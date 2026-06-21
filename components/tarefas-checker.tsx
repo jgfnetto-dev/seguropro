@@ -2,11 +2,13 @@
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 
-const INTERVALO_MS = 60_000
+const INTERVALO_PADRAO_MS = 60_000
+const INTERVALO_TELA_TAREFAS_MS = 10_000
 
 export function TarefasChecker() {
   const pathname = usePathname()
   const router = useRouter()
+  const naTelaDeTarefas = pathname?.startsWith('/tarefas') ?? false
 
   useEffect(() => {
     function verificar() {
@@ -19,9 +21,10 @@ export function TarefasChecker() {
     }
 
     verificar()
-    const id = setInterval(verificar, INTERVALO_MS)
+    const intervalo = naTelaDeTarefas ? INTERVALO_TELA_TAREFAS_MS : INTERVALO_PADRAO_MS
+    const id = setInterval(verificar, intervalo)
     return () => clearInterval(id)
-  }, [pathname, router])
+  }, [pathname, router, naTelaDeTarefas])
 
   return null
 }
