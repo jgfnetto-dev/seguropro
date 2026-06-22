@@ -61,12 +61,12 @@ export async function extractPdfData(pdfBase64: string): Promise<Record<string, 
   "data_emissao": "data de emissão da apólice no formato YYYY-MM-DD",
   "data_inicio": "data de início da vigência no formato YYYY-MM-DD",
   "data_fim": "data de fim da vigência no formato YYYY-MM-DD",
-  "seguradora": "nome da seguradora",
-  "tipo_seguro": "tipo de seguro (Automóvel, Vida, Residencial, etc)",
+  "seguradora": "nome da seguradora/empresa que emitiu a apólice (a empresa seguradora, não a corretora). Geralmente aparece próximo de 'Seguradora', 'CNPJ' ou no cabeçalho/logo do documento. Ignore o nome da corretora que intermediou a venda.",
+  "tipo_seguro": "tipo de seguro coberto pela apólice (ex: Automóvel, Moto, Vida, Residencial, Empresarial, Saúde, Celular, Bike, Viagem, etc). Costuma aparecer no título do documento (ex: 'Seguro Celular', 'Seguro Auto') ou na descrição do bem/risco segurado. Use uma palavra curta no formato Capitalizado.",
   "premio_liquido": número com o prêmio líquido (apenas o número, sem R$),
   "premio_total": número com o prêmio total (apenas o número, sem R$)
 }
-Retorne apenas o JSON, sem explicações adicionais.`
+Retorne apenas o JSON, sem explicações adicionais. Mesmo em documentos com layout fora do padrão (tabelas, cartões, colunas), procure cuidadosamente por cada campo antes de retornar null.`
 
   return extractWithPrompt(pdfBase64, prompt)
 }

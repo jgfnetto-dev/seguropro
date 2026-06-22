@@ -108,6 +108,8 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
           } else {
             showToast(`Seguradora "${data.seguradora}" não encontrada. Selecione manualmente.`, 'info')
           }
+        } else {
+          showToast('PDF não trouxe o nome da seguradora. Selecione manualmente.', 'info')
         }
 
         console.log('[PDF Extract] dados retornados:', data)
