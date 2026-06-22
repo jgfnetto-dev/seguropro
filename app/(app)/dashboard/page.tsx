@@ -156,7 +156,7 @@ export default async function DashboardPage() {
                     <Wallet className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-body-sm font-bold text-on-surface">
-                        Existem conciliações para o mês anterior ({NOMES_MESES[mesAnteriorIdx]}) que ainda não foram conciliadas.
+                        Existem comissões para o mês anterior ({NOMES_MESES[mesAnteriorIdx]}) que ainda não foram conciliadas.
                       </p>
                       <p className="text-body-sm text-on-surface-variant">
                         Total a conciliar: {formatCurrency(totalPendenteConciliacao)}. Clique para ir até Conciliação.
