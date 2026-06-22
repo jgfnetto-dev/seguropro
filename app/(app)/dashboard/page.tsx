@@ -3,9 +3,9 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive, ArchiveRestore } from 'lucide-react'
+import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive, ArchiveRestore, Wallet } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatCurrency, NOMES_MESES } from '@/lib/utils'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -37,6 +37,36 @@ export default async function DashboardPage() {
   ])
 
   const primeiroNome = usuario?.nome?.split(' ')[0] ?? 'Corretor'
+
+  const hojeData = new Date()
+  const mesAnteriorIdx = hojeData.getMonth() === 0 ? 11 : hojeData.getMonth() - 1
+  const anoMesAnterior = hojeData.getMonth() === 0 ? hojeData.getFullYear() - 1 : hojeData.getFullYear()
+  const inicioMesAnterior = `${anoMesAnterior}-${String(mesAnteriorIdx + 1).padStart(2, '0')}-01`
+  const ultimoDiaMesAnterior = new Date(anoMesAnterior, mesAnteriorIdx + 1, 0).getDate()
+  const fimMesAnterior = `${anoMesAnterior}-${String(mesAnteriorIdx + 1).padStart(2, '0')}-${String(ultimoDiaMesAnterior).padStart(2, '0')}`
+
+  const { data: apolicesMesAnterior } = await supabase
+    .from('apolices')
+    .select('id, premio_liquido, comissao_percentual')
+    .gte('data_emissao', inicioMesAnterior)
+    .lte('data_emissao', fimMesAnterior)
+
+  const idsApolicesMesAnterior = apolicesMesAnterior?.map((a) => a.id) ?? []
+  const { data: conciliacoesMesAnterior } = idsApolicesMesAnterior.length
+    ? await supabase.from('conciliacao').select('apolice_id, valor_conciliar').in('apolice_id', idsApolicesMesAnterior)
+    : { data: [] as { apolice_id: string; valor_conciliar: number }[] }
+
+  const conciliadoPorApoliceAnterior = new Map<string, number>()
+  conciliacoesMesAnterior?.forEach((c) => {
+    conciliadoPorApoliceAnterior.set(c.apolice_id, (conciliadoPorApoliceAnterior.get(c.apolice_id) ?? 0) + Number(c.valor_conciliar))
+  })
+
+  const totalPendenteConciliacao = apolicesMesAnterior?.reduce((soma, a) => {
+    const comissaoCalculada = a.premio_liquido * ((a.comissao_percentual ?? 0) / 100)
+    const jaConciliado = conciliadoPorApoliceAnterior.get(a.id) ?? 0
+    const restante = Math.round((comissaoCalculada - jaConciliado) * 100) / 100
+    return soma + (restante > 0 ? restante : 0)
+  }, 0) ?? 0
 
   const statusFinalPorApolice = new Map<string, string>()
   statusRows?.forEach((s) => {
@@ -120,6 +150,21 @@ export default async function DashboardPage() {
                   </div>
                 </Link>
               )}
+              {totalPendenteConciliacao > 0 && (
+                <Link href={`/conciliacao?mes=${mesAnteriorIdx + 1}&ano=${anoMesAnterior}`} className="block">
+                  <div className="flex items-start gap-3 p-3 rounded bg-amber-50 border-2 border-amber-400 hover:bg-amber-100 transition-colors">
+                    <Wallet className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-body-sm font-bold text-on-surface">
+                        Existem conciliações para o mês anterior ({NOMES_MESES[mesAnteriorIdx]}) que ainda não foram conciliadas.
+                      </p>
+                      <p className="text-body-sm text-on-surface-variant">
+                        Total a conciliar: {formatCurrency(totalPendenteConciliacao)}. Clique para ir até Conciliação.
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              )}
               {alertas && alertas.length > 0 ? (
                 alertas.map((a) => (
                   <div key={a.id} className="flex items-start gap-3 p-3 rounded bg-error/5 border border-error/10">
@@ -132,7 +177,7 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                 ))
-              ) : pendentesHistorico === 0 ? (
+              ) : pendentesHistorico === 0 && totalPendenteConciliacao === 0 ? (
                 <p className="text-body-sm text-on-surface-variant text-center py-4">
                   Nenhum alerta urgente
                 </p>
