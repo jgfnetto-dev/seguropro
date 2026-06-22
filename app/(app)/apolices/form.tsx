@@ -27,9 +27,14 @@ function normalizeNome(value: string) {
 
 function matchSeguradora(nomeExtraido: string, seguradoras: { id: string; nome: string }[]) {
   const normalizado = normalizeNome(nomeExtraido)
+  const primeiraPalavraExtraida = normalizado.split(' ')[0] ?? ''
   return seguradoras.find((s) => {
     const nomeCadastrado = normalizeNome(s.nome)
-    return nomeCadastrado.includes(normalizado) || normalizado.includes(nomeCadastrado)
+    if (nomeCadastrado.includes(normalizado) || normalizado.includes(nomeCadastrado)) return true
+    // Seguradoras costumam variar o sufixo (Seguros, Seguradora, Cia de Seguros, S.A. etc),
+    // mas a primeira palavra (a marca, ex: "Pier", "Porto") normalmente se mantém igual.
+    const primeiraPalavraCadastrada = nomeCadastrado.split(' ')[0] ?? ''
+    return primeiraPalavraExtraida.length >= 3 && primeiraPalavraExtraida === primeiraPalavraCadastrada
   })
 }
 
