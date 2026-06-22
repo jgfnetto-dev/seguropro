@@ -325,7 +325,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Tipo de Seguro</Label>
-                    <Select value={tipoSeguro} onValueChange={setTipoSeguro}>
+                    <Select key={tiposDisponiveis.join('|')} value={tipoSeguro} onValueChange={setTipoSeguro}>
                       <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                       <SelectContent>
                         {tiposDisponiveis.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
