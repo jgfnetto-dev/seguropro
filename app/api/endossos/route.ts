@@ -28,7 +28,10 @@ export async function POST(req: NextRequest) {
   const corretora_id = await getCorretoraId(supabase)
   if (!corretora_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { apolice_id, numero_apolice, numero_endosso, tipo_endosso, segurado, data_emissao, data_inicio, data_fim, pdf_url } = await req.json()
+  const {
+    apolice_id, numero_apolice, numero_endosso, tipo_endosso, segurado,
+    data_emissao, data_inicio, data_fim, veiculo, ano, modelo, placa, chassi, pdf_url,
+  } = await req.json()
   if (!apolice_id || !numero_apolice || !numero_endosso) {
     return NextResponse.json({ error: 'Informe apólice e número do endosso.' }, { status: 400 })
   }
@@ -45,6 +48,11 @@ export async function POST(req: NextRequest) {
       data_emissao: data_emissao ?? null,
       data_inicio: data_inicio ?? null,
       data_fim: data_fim ?? null,
+      veiculo: veiculo ?? null,
+      ano: ano ?? null,
+      modelo: modelo ?? null,
+      placa: placa ?? null,
+      chassi: chassi ?? null,
       pdf_url: pdf_url ?? null,
     })
     .select()
@@ -52,4 +60,17 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data, { status: 201 })
+}
+
+export async function DELETE(req: NextRequest) {
+  const supabase = await createServerSupabaseClient()
+  const corretora_id = await getCorretoraId(supabase)
+  if (!corretora_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const id = req.nextUrl.searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
+  const { error } = await supabase.from('endossos').delete().eq('id', id).eq('corretora_id', corretora_id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
 }

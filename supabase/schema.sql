@@ -90,6 +90,11 @@ CREATE TABLE IF NOT EXISTS endossos (
   data_emissao date,
   data_inicio date,
   data_fim date,
+  veiculo text,
+  ano text,
+  modelo text,
+  placa text,
+  chassi text,
   pdf_url text,
   criado_em timestamptz DEFAULT now()
 );

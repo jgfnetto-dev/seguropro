@@ -79,9 +79,14 @@ export async function extractEndossoData(pdfBase64: string): Promise<Record<stri
   "segurado": "nome completo do segurado",
   "data_emissao": "data de emissão do endosso no formato YYYY-MM-DD",
   "data_inicio": "data de início da vigência do endosso no formato YYYY-MM-DD",
-  "data_fim": "data de fim da vigência do endosso no formato YYYY-MM-DD"
+  "data_fim": "data de fim da vigência do endosso no formato YYYY-MM-DD",
+  "veiculo": "marca/fabricante do veículo segurado (ex: Volkswagen, Fiat, Honda), se houver",
+  "ano": "ano do veículo (ano de fabricação/modelo, ex: 2022 ou 2022/2023), se houver",
+  "modelo": "modelo do veículo (ex: Gol, Civic, Onix), se houver",
+  "placa": "placa do veículo, se houver",
+  "chassi": "número do chassi do veículo, se houver"
 }
-Retorne apenas o JSON, sem explicações adicionais.`
+Retorne apenas o JSON, sem explicações adicionais. Os campos de veículo só existem em endossos de seguro automotivo; use null quando não se aplicar.`
 
   return extractWithPrompt(pdfBase64, prompt)
 }

@@ -1,8 +1,10 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Download, ChevronDown } from 'lucide-react'
+import { Download, ChevronDown, Trash2 } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { useToast } from '@/components/ui/toast'
 import { DeleteApoliceButton } from './delete-button'
 import { EndossoButton } from './endosso-button'
 
@@ -14,6 +16,11 @@ interface Endosso {
   data_emissao?: string | null
   data_inicio?: string | null
   data_fim?: string | null
+  veiculo?: string | null
+  ano?: string | null
+  modelo?: string | null
+  placa?: string | null
+  chassi?: string | null
   pdf_url?: string | null
 }
 
@@ -41,12 +48,32 @@ interface Props {
 }
 
 export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endossos, statusBadge }: Props) {
+  const router = useRouter()
+  const { showToast, ToastComponent } = useToast()
   const [expanded, setExpanded] = useState(false)
+  const [excluindoId, setExcluindoId] = useState<string | null>(null)
   const temEndosso = endossos.length > 0
   const zebra = index % 2 === 0 ? '' : 'bg-surface-container-low/40'
 
+  async function handleExcluirEndosso(endosso: Endosso) {
+    if (!confirm(`Excluir o endosso nº ${endosso.numero_endosso}?`)) return
+
+    setExcluindoId(endosso.id)
+    const res = await fetch(`/api/endossos?id=${endosso.id}`, { method: 'DELETE' })
+    const data = await res.json()
+    setExcluindoId(null)
+
+    if (!res.ok) {
+      showToast(`Erro ao excluir endosso: ${data.error ?? 'falha desconhecida'}`, 'error')
+      return
+    }
+    showToast('Endosso excluído.', 'success')
+    router.refresh()
+  }
+
   return (
     <>
+      {ToastComponent}
       <tr className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${zebra}`}>
         <td className="px-1.5 py-3">
           {temEndosso && (
@@ -100,46 +127,70 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
       {expanded && temEndosso && (
         <tr className={`border-b border-outline-variant/20 ${zebra}`}>
           <td colSpan={12} className="px-4 py-3 bg-surface-container-low/60">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-outline-variant/30">
-                  <th className="label-caps text-on-surface-variant text-left px-2 py-2">Apólice</th>
-                  <th className="label-caps text-on-surface-variant text-left px-2 py-2">Endosso</th>
-                  <th className="label-caps text-on-surface-variant text-left px-2 py-2">Tipo de Endosso</th>
-                  <th className="label-caps text-on-surface-variant text-left px-2 py-2">Segurado</th>
-                  <th className="label-caps text-on-surface-variant text-left px-2 py-2">Data Emissão</th>
-                  <th className="label-caps text-on-surface-variant text-left px-2 py-2">Início Vigência</th>
-                  <th className="label-caps text-on-surface-variant text-left px-2 py-2">Fim Vigência</th>
-                  <th className="label-caps text-on-surface-variant text-right px-2 py-2">PDF</th>
-                </tr>
-              </thead>
-              <tbody>
-                {endossos.map((e) => (
-                  <tr key={e.id} className="border-b border-outline-variant/10 last:border-0">
-                    <td className="px-2 py-2 text-body-sm text-on-surface">{a.numero_apolice}</td>
-                    <td className="px-2 py-2 text-body-sm font-medium text-on-surface">{e.numero_endosso}</td>
-                    <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.tipo_endosso || '—'}</td>
-                    <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.segurado || '—'}</td>
-                    <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.data_emissao ? formatDate(e.data_emissao) : '—'}</td>
-                    <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.data_inicio ? formatDate(e.data_inicio) : '—'}</td>
-                    <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.data_fim ? formatDate(e.data_fim) : '—'}</td>
-                    <td className="px-2 py-2 text-right">
-                      {e.pdf_url ? (
-                        <a
-                          href={e.pdf_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Baixar PDF do endosso"
-                          className="inline-flex p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
-                        >
-                          <Download className="w-4 h-4" />
-                        </a>
-                      ) : '—'}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-outline-variant/30">
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Apólice</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Endosso</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Tipo de Endosso</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Segurado</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Data Emissão</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Início Vigência</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Fim Vigência</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Veículo</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Ano</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Modelo</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Placa</th>
+                    <th className="label-caps text-on-surface-variant text-left px-2 py-2">Chassi</th>
+                    <th className="label-caps text-on-surface-variant text-right px-2 py-2">PDF</th>
+                    <th className="label-caps text-on-surface-variant text-right px-2 py-2">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {endossos.map((e) => (
+                    <tr key={e.id} className="border-b border-outline-variant/10 last:border-0">
+                      <td className="px-2 py-2 text-body-sm text-on-surface">{a.numero_apolice}</td>
+                      <td className="px-2 py-2 text-body-sm font-medium text-on-surface">{e.numero_endosso}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.tipo_endosso || '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.segurado || '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.data_emissao ? formatDate(e.data_emissao) : '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.data_inicio ? formatDate(e.data_inicio) : '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.data_fim ? formatDate(e.data_fim) : '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.veiculo || '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.ano || '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.modelo || '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.placa || '—'}</td>
+                      <td className="px-2 py-2 text-body-sm text-on-surface-variant">{e.chassi || '—'}</td>
+                      <td className="px-2 py-2 text-right">
+                        {e.pdf_url ? (
+                          <a
+                            href={e.pdf_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Baixar PDF do endosso"
+                            className="inline-flex p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
+                        ) : '—'}
+                      </td>
+                      <td className="px-2 py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleExcluirEndosso(e)}
+                          disabled={excluindoId === e.id}
+                          title="Excluir endosso"
+                          className="p-1.5 rounded hover:bg-error/10 text-on-surface-variant hover:text-error disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </td>
         </tr>
       )}

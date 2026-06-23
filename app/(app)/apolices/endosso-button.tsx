@@ -27,6 +27,11 @@ export function EndossoButton({ apoliceId, numeroApolice }: Props) {
   const [dataEmissao, setDataEmissao] = useState('')
   const [dataInicio, setDataInicio] = useState('')
   const [dataFim, setDataFim] = useState('')
+  const [veiculo, setVeiculo] = useState('')
+  const [ano, setAno] = useState('')
+  const [modelo, setModelo] = useState('')
+  const [placa, setPlaca] = useState('')
+  const [chassi, setChassi] = useState('')
 
   function resetForm() {
     setPdfFile(null)
@@ -36,6 +41,11 @@ export function EndossoButton({ apoliceId, numeroApolice }: Props) {
     setDataEmissao('')
     setDataInicio('')
     setDataFim('')
+    setVeiculo('')
+    setAno('')
+    setModelo('')
+    setPlaca('')
+    setChassi('')
   }
 
   const onDrop = useCallback(async (files: File[]) => {
@@ -66,6 +76,11 @@ export function EndossoButton({ apoliceId, numeroApolice }: Props) {
         if (data.data_emissao) setDataEmissao(data.data_emissao)
         if (data.data_inicio) setDataInicio(data.data_inicio)
         if (data.data_fim) setDataFim(data.data_fim)
+        if (data.veiculo) setVeiculo(data.veiculo)
+        if (data.ano) setAno(data.ano)
+        if (data.modelo) setModelo(data.modelo)
+        if (data.placa) setPlaca(data.placa)
+        if (data.chassi) setChassi(data.chassi)
         showToast('Dados do endosso extraídos com sucesso! Confira antes de salvar.', 'success')
       } catch (err) {
         showToast(`Erro na extração do PDF: ${err instanceof Error ? err.message : 'desconhecido'}`, 'error')
@@ -111,6 +126,11 @@ export function EndossoButton({ apoliceId, numeroApolice }: Props) {
           data_emissao: dataEmissao || null,
           data_inicio: dataInicio || null,
           data_fim: dataFim || null,
+          veiculo: veiculo || null,
+          ano: ano || null,
+          modelo: modelo || null,
+          placa: placa || null,
+          chassi: chassi || null,
           pdf_url: uploadData.url,
         }),
       })
@@ -193,6 +213,32 @@ export function EndossoButton({ apoliceId, numeroApolice }: Props) {
               <div>
                 <Label htmlFor="data-fim-endosso">Data Fim</Label>
                 <Input id="data-fim-endosso" type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="veiculo-endosso">Veículo</Label>
+                <Input id="veiculo-endosso" value={veiculo} onChange={(e) => setVeiculo(e.target.value)} placeholder="Ex: Volkswagen" />
+              </div>
+              <div>
+                <Label htmlFor="modelo-endosso">Modelo</Label>
+                <Input id="modelo-endosso" value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="Ex: Gol" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label htmlFor="ano-endosso">Ano</Label>
+                <Input id="ano-endosso" value={ano} onChange={(e) => setAno(e.target.value)} placeholder="Ex: 2022/2023" />
+              </div>
+              <div>
+                <Label htmlFor="placa-endosso">Placa</Label>
+                <Input id="placa-endosso" value={placa} onChange={(e) => setPlaca(e.target.value)} placeholder="Ex: ABC1D23" />
+              </div>
+              <div>
+                <Label htmlFor="chassi-endosso">Chassi</Label>
+                <Input id="chassi-endosso" value={chassi} onChange={(e) => setChassi(e.target.value)} />
               </div>
             </div>
 

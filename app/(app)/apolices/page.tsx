@@ -55,7 +55,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     supabase.from('apolices').select('cliente_id'),
     supabase
       .from('endossos')
-      .select('id, apolice_id, numero_endosso, tipo_endosso, segurado, data_emissao, data_inicio, data_fim, pdf_url')
+      .select('id, apolice_id, numero_endosso, tipo_endosso, segurado, data_emissao, data_inicio, data_fim, veiculo, ano, modelo, placa, chassi, pdf_url')
       .order('criado_em', { ascending: false }),
   ])
 

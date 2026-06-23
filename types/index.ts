@@ -115,6 +115,11 @@ export interface Endosso {
   data_emissao?: string
   data_inicio?: string
   data_fim?: string
+  veiculo?: string
+  ano?: string
+  modelo?: string
+  placa?: string
+  chassi?: string
   pdf_url?: string
   criado_em: string
 }
@@ -126,6 +131,11 @@ export interface EndossoExtractResult {
   data_emissao?: string
   data_inicio?: string
   data_fim?: string
+  veiculo?: string
+  ano?: string
+  modelo?: string
+  placa?: string
+  chassi?: string
 }
 
 export interface HistoricoRenovacao {
