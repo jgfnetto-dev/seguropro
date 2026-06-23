@@ -114,23 +114,23 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-8">
-      <div>
+    <div className="space-y-4 h-[calc(100vh-110px)] flex flex-col">
+      <div className="shrink-0">
         <p className="text-body-sm text-on-surface-variant">Bem-vindo de volta</p>
-        <h1 className="text-h1 text-on-surface">Olá, {primeiroNome}</h1>
+        <h1 className="text-h2 text-on-surface">Olá, {primeiroNome}</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
         {stats.map(({ label, value, icon: Icon, href }) => (
           <Link key={label} href={href}>
             <Card className="hover:shadow-overlay transition-shadow cursor-pointer">
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-primary" />
+              <CardContent className="p-3.5 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Icon className="w-4.5 h-4.5 text-primary" />
                 </div>
                 <div>
                   <p className="label-caps text-on-surface-variant">{label}</p>
-                  <p className="text-2xl font-bold text-on-surface">{value.toLocaleString('pt-BR')}</p>
+                  <p className="text-xl font-bold text-on-surface">{value.toLocaleString('pt-BR')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -138,35 +138,35 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <Card>
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+      <Card className="shrink-0">
+        <CardContent className="p-3.5">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <BarChart3 className="w-4.5 h-4.5 text-primary" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <BarChart3 className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="text-h3 text-on-surface">Total de Emissão</h2>
-                <p className="text-body-sm text-on-surface-variant">Soma do prêmio líquido por ano de emissão</p>
+                <h2 className="text-body-md font-semibold text-on-surface">Total de Emissão</h2>
+                <p className="text-xs text-on-surface-variant">Soma do prêmio líquido por ano de emissão</p>
               </div>
             </div>
             {variacaoEmissaoPercentual !== null && (
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-body-sm font-semibold ${
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
                 variacaoEmissaoPercentual >= 0 ? 'bg-green-100 text-green-700' : 'bg-error/10 text-error'
               }`}>
-                {variacaoEmissaoPercentual >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                {variacaoEmissaoPercentual >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                 {variacaoEmissaoPercentual >= 0 ? '+' : ''}{variacaoEmissaoPercentual.toFixed(1)}% vs {anoAnteriorNum}
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <div className="flex items-end justify-between mb-1.5">
+              <div className="flex items-end justify-between mb-1">
                 <span className="label-caps text-on-surface-variant">{anoAnteriorNum}</span>
-                <span className="text-xl font-bold text-on-surface">{formatCurrency(totalEmissaoAnoAnterior)}</span>
+                <span className="text-base font-bold text-on-surface">{formatCurrency(totalEmissaoAnoAnterior)}</span>
               </div>
-              <div className="h-2.5 rounded-full bg-surface-container overflow-hidden">
+              <div className="h-2 rounded-full bg-surface-container overflow-hidden">
                 <div
                   className="h-full rounded-full bg-on-surface-variant/40"
                   style={{ width: `${(totalEmissaoAnoAnterior / maiorTotalEmissao) * 100}%` }}
@@ -174,11 +174,11 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div>
-              <div className="flex items-end justify-between mb-1.5">
+              <div className="flex items-end justify-between mb-1">
                 <span className="label-caps text-primary font-semibold">{anoAtualNum} (atual)</span>
-                <span className="text-xl font-bold text-on-surface">{formatCurrency(totalEmissaoAnoAtual)}</span>
+                <span className="text-base font-bold text-on-surface">{formatCurrency(totalEmissaoAnoAtual)}</span>
               </div>
-              <div className="h-2.5 rounded-full bg-surface-container overflow-hidden">
+              <div className="h-2 rounded-full bg-surface-container overflow-hidden">
                 <div
                   className="h-full rounded-full bg-primary"
                   style={{ width: `${(totalEmissaoAnoAtual / maiorTotalEmissao) * 100}%` }}
@@ -189,14 +189,14 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-h3 text-on-surface mb-4">Acesso Rápido</h2>
-          <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 min-h-0">
+        <div className="flex flex-col min-h-0">
+          <h2 className="text-body-md font-semibold text-on-surface mb-2 shrink-0">Acesso Rápido</h2>
+          <div className="grid grid-cols-2 gap-2">
             {quickLinks.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
-                <Card className="hover:shadow-overlay transition-shadow cursor-pointer p-4 flex flex-col items-center gap-2 text-center">
-                  <Icon className="w-6 h-6 text-secondary" />
+                <Card className="hover:shadow-overlay transition-shadow cursor-pointer p-3 flex flex-col items-center gap-1.5 text-center">
+                  <Icon className="w-5 h-5 text-secondary" />
                   <span className="text-body-sm font-medium text-on-surface">{label}</span>
                 </Card>
               </Link>
@@ -204,19 +204,19 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div>
-          <h2 className="text-h3 text-on-surface mb-4">Alertas Urgentes</h2>
-          <Card>
-            <CardContent className="p-4 space-y-3">
+        <div className="flex flex-col min-h-0">
+          <h2 className="text-body-md font-semibold text-on-surface mb-2 shrink-0">Alertas Urgentes</h2>
+          <Card className="flex-1 min-h-0 overflow-y-auto">
+            <CardContent className="p-3 space-y-2">
               {pendentesHistorico > 0 && (
                 <Link href="/renovacoes" className="block">
-                  <div className="flex items-start gap-3 p-3 rounded bg-amber-50 border-2 border-amber-400 animate-pulse hover:animate-none hover:bg-amber-100 transition-colors">
-                    <ArchiveRestore className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-2.5 p-2.5 rounded bg-amber-50 border-2 border-amber-400 hover:bg-amber-100 transition-colors">
+                    <ArchiveRestore className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-body-sm font-bold text-on-surface">
                         ⚠ Existem {pendentesHistorico} renovaç{pendentesHistorico === 1 ? 'ão' : 'ões'} com status de Renovada ou Cancelada
                       </p>
-                      <p className="text-body-sm text-on-surface-variant">
+                      <p className="text-xs text-on-surface-variant">
                         Você pode enviá-la{pendentesHistorico === 1 ? '' : 's'} para o histórico. Clique para ir até Renovações.
                       </p>
                     </div>
@@ -225,13 +225,13 @@ export default async function DashboardPage() {
               )}
               {totalPendenteConciliacao > 0 && (
                 <Link href={`/conciliacao?mes=${mesAnteriorIdx + 1}&ano=${anoMesAnterior}`} className="block">
-                  <div className="flex items-start gap-3 p-3 rounded bg-amber-50 border-2 border-amber-400 hover:bg-amber-100 transition-colors">
-                    <Wallet className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-2.5 p-2.5 rounded bg-amber-50 border-2 border-amber-400 hover:bg-amber-100 transition-colors">
+                    <Wallet className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-body-sm font-bold text-on-surface">
                         Existem comissões para o mês anterior ({NOMES_MESES[mesAnteriorIdx]}) que ainda não foram conciliadas.
                       </p>
-                      <p className="text-body-sm text-on-surface-variant">
+                      <p className="text-xs text-on-surface-variant">
                         Total a conciliar: {formatCurrency(totalPendenteConciliacao)}. Clique para ir até Conciliação.
                       </p>
                     </div>
@@ -240,11 +240,11 @@ export default async function DashboardPage() {
               )}
               {alertas && alertas.length > 0 ? (
                 alertas.map((a) => (
-                  <div key={a.id} className="flex items-start gap-3 p-3 rounded bg-error/5 border border-error/10">
+                  <div key={a.id} className="flex items-start gap-2.5 p-2.5 rounded bg-error/5 border border-error/10">
                     <AlertCircle className="w-4 h-4 text-error mt-0.5 shrink-0" />
                     <div>
                       <p className="text-body-sm font-medium text-on-surface">Apólice Vencendo</p>
-                      <p className="text-body-sm text-on-surface-variant">
+                      <p className="text-xs text-on-surface-variant">
                         {a.cliente?.segurado} — {formatDate(a.data_fim)}
                       </p>
                     </div>
