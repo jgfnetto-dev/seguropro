@@ -26,6 +26,7 @@ interface ApoliceRowData {
   data_fim: string
   tipo_seguro: string
   vendedor?: string | null
+  premio_liquido: number
   premio_total: number
   pdf_url?: string | null
   cliente?: { segurado?: string }
@@ -71,6 +72,7 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
         <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
         <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.seguradora?.nome}</td>
         <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.vendedor || '—'}</td>
+        <td className="px-2 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
         <td className="px-2 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_total)}</td>
         <td className="px-2 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
         <td className="px-2 py-3">{statusBadge}</td>
@@ -99,7 +101,7 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
       </tr>
       {expanded && temEndosso && (
         <tr className={`border-b border-outline-variant/20 ${zebra}`}>
-          <td colSpan={12} className="px-4 py-3 bg-surface-container-low/60">
+          <td colSpan={13} className="px-4 py-3 bg-surface-container-low/60">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-outline-variant/30">

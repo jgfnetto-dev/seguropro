@@ -168,6 +168,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Tipo</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3"><SortableHeader field="seguradora" label="Seguradora" /></th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Vendedor</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Prêmio Líquido</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Prêmio Total</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3"><SortableHeader field="data_fim" label="Vencimento" /></th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3">Status</th>
@@ -187,7 +188,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
             ))}
             {!apolices?.length && (
               <tr>
-                <td colSpan={12} className="text-center py-12 text-body-sm text-on-surface-variant">
+                <td colSpan={13} className="text-center py-12 text-body-sm text-on-surface-variant">
                   Nenhuma apólice cadastrada
                 </td>
               </tr>
