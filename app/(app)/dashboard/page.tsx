@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive, ArchiveRestore, Wallet } from 'lucide-react'
+import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive, ArchiveRestore, Wallet, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate, formatCurrency, NOMES_MESES } from '@/lib/utils'
 
@@ -68,6 +68,28 @@ export default async function DashboardPage() {
     return soma + (restante > 0 ? restante : 0)
   }, 0) ?? 0
 
+  const anoAtualNum = hojeData.getFullYear()
+  const anoAnteriorNum = anoAtualNum - 1
+
+  const { data: apolicesEmissaoAnos } = await supabase
+    .from('apolices')
+    .select('data_emissao, premio_liquido')
+    .gte('data_emissao', `${anoAnteriorNum}-01-01`)
+    .lte('data_emissao', `${anoAtualNum}-12-31`)
+
+  const totalPremioPorAno = new Map<number, number>()
+  apolicesEmissaoAnos?.forEach((a) => {
+    if (!a.data_emissao) return
+    const ano = parseInt(a.data_emissao.slice(0, 4))
+    totalPremioPorAno.set(ano, (totalPremioPorAno.get(ano) ?? 0) + Number(a.premio_liquido))
+  })
+  const totalEmissaoAnoAnterior = totalPremioPorAno.get(anoAnteriorNum) ?? 0
+  const totalEmissaoAnoAtual = totalPremioPorAno.get(anoAtualNum) ?? 0
+  const maiorTotalEmissao = Math.max(totalEmissaoAnoAnterior, totalEmissaoAnoAtual, 1)
+  const variacaoEmissaoPercentual = totalEmissaoAnoAnterior > 0
+    ? ((totalEmissaoAnoAtual - totalEmissaoAnoAnterior) / totalEmissaoAnoAnterior) * 100
+    : null
+
   const statusFinalPorApolice = new Map<string, string>()
   statusRows?.forEach((s) => {
     if (!statusFinalPorApolice.has(s.apolice_id)) statusFinalPorApolice.set(s.apolice_id, s.status)
@@ -115,6 +137,57 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      <Card>
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BarChart3 className="w-4.5 h-4.5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-h3 text-on-surface">Total de Emissão</h2>
+                <p className="text-body-sm text-on-surface-variant">Soma do prêmio líquido por ano de emissão</p>
+              </div>
+            </div>
+            {variacaoEmissaoPercentual !== null && (
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-body-sm font-semibold ${
+                variacaoEmissaoPercentual >= 0 ? 'bg-green-100 text-green-700' : 'bg-error/10 text-error'
+              }`}>
+                {variacaoEmissaoPercentual >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                {variacaoEmissaoPercentual >= 0 ? '+' : ''}{variacaoEmissaoPercentual.toFixed(1)}% vs {anoAnteriorNum}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <div className="flex items-end justify-between mb-1.5">
+                <span className="label-caps text-on-surface-variant">{anoAnteriorNum}</span>
+                <span className="text-xl font-bold text-on-surface">{formatCurrency(totalEmissaoAnoAnterior)}</span>
+              </div>
+              <div className="h-2.5 rounded-full bg-surface-container overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-on-surface-variant/40"
+                  style={{ width: `${(totalEmissaoAnoAnterior / maiorTotalEmissao) * 100}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-end justify-between mb-1.5">
+                <span className="label-caps text-primary font-semibold">{anoAtualNum} (atual)</span>
+                <span className="text-xl font-bold text-on-surface">{formatCurrency(totalEmissaoAnoAtual)}</span>
+              </div>
+              <div className="h-2.5 rounded-full bg-surface-container overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${(totalEmissaoAnoAtual / maiorTotalEmissao) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
