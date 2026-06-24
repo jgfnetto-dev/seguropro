@@ -11,6 +11,7 @@ import { formatDate, formatCurrency, formatCpfCnpj, MESES, anosDisponiveis } fro
 import { ConciliarButton } from './conciliar-button'
 import { HistoricoConciliacaoButton } from './historico-button'
 import { VendedorButton } from './vendedor-button'
+import { RelatorioConciliacaoButton } from './relatorio-button'
 
 export default async function ConciliacaoPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string } }) {
   const supabase = await createServerSupabaseClient()
@@ -60,11 +61,20 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
     historicoPorApolice.set(c.apolice_id, lista)
   })
 
+  const hojeConciliacao = new Date()
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-h1 text-on-surface">Conciliação</h1>
-        <p className="text-body-sm text-on-surface-variant mt-1">Acompanhe e concilie as comissões das apólices.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-h1 text-on-surface">Conciliação</h1>
+          <p className="text-body-sm text-on-surface-variant mt-1">Acompanhe e concilie as comissões das apólices.</p>
+        </div>
+        <RelatorioConciliacaoButton
+          mesAtual={hojeConciliacao.getMonth() + 1}
+          anoAtual={hojeConciliacao.getFullYear()}
+          emailUsuario={session.user.email}
+        />
       </div>
 
       <form method="GET" className="flex flex-wrap items-end gap-3">
