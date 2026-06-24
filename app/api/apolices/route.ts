@@ -74,6 +74,12 @@ export async function DELETE(req: NextRequest) {
     .single()
   if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 })
 
+  await Promise.all([
+    supabase.from('status_renovacao').delete().eq('apolice_id', id),
+    supabase.from('conciliacao').delete().eq('apolice_id', id),
+    supabase.from('endossos').delete().eq('apolice_id', id),
+  ])
+
   const { error } = await supabase.from('apolices').delete().eq('id', id).eq('corretora_id', corretora_id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
