@@ -140,9 +140,12 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
                   <td className="px-3 py-3">
                     {conciliado ? (
-                      <Badge variant="success" className="gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
-                      </Badge>
+                      <div className="flex flex-col gap-0.5">
+                        <Badge variant="success" className="gap-1 w-fit">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
+                        </Badge>
+                        <span className="text-xs font-medium text-green-600">{formatCurrency(jaConciliado)}</span>
+                      </div>
                     ) : (
                       <span className="text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</span>
                     )}
