@@ -9,7 +9,7 @@ import { CadastrarStatusButton } from './cadastrar-status-button'
 import { EnviarHistoricoButton } from './enviar-historico-button'
 import { RelatorioButton } from './relatorio-button'
 import { formatDate } from '@/lib/utils'
-import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 function getMonthName(month: number) {
@@ -146,7 +146,6 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-h2 text-on-surface">Apólices em Aberto</h2>
           <div className="flex gap-2">
-            <button className="p-2 rounded hover:bg-surface-container text-on-surface-variant"><SlidersHorizontal className="w-4 h-4" /></button>
             <RelatorioButton mesAtual={mes + 1} anoAtual={ano} emailUsuario={session.user.email} />
           </div>
         </div>
