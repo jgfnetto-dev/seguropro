@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { FileText } from 'lucide-react'
+import { Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -68,7 +68,7 @@ export function RelatorioButton({ mesAtual, anoAtual, emailUsuario }: Props) {
             title="Gerar relatório de renovações em PDF"
             className="p-2 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
           >
-            <FileText className="w-4 h-4" />
+            <Printer className="w-4 h-4" />
           </button>
         </DialogTrigger>
         <DialogContent>
