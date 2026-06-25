@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Apenas o administrador pode criar novos usuários.' }, { status: 403 })
   }
 
-  const { nome, email, senha } = await req.json()
-  if (!nome || !email || !senha) {
-    return NextResponse.json({ error: 'Informe nome, e-mail e senha.' }, { status: 400 })
+  const { nome, email, senha, telefone_whatsapp } = await req.json()
+  if (!nome || !email || !senha || !telefone_whatsapp) {
+    return NextResponse.json({ error: 'Informe nome, e-mail, celular/WhatsApp e senha.' }, { status: 400 })
   }
   if (senha.length < 6) {
     return NextResponse.json({ error: 'A senha deve ter no mínimo 6 caracteres.' }, { status: 400 })
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await serviceClient
     .from('usuarios')
-    .insert({ id: authUser.user.id, corretora_id: requester.corretora_id, email, nome, adm: 'N', senha_deve_ser_alterada: true })
+    .insert({ id: authUser.user.id, corretora_id: requester.corretora_id, email, nome, telefone_whatsapp, adm: 'N', senha_deve_ser_alterada: true })
     .select('id, nome, email, telefone_whatsapp, adm, criado_em')
     .single()
 

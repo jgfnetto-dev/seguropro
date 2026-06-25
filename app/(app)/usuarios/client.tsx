@@ -32,6 +32,7 @@ export function UsuariosClient({ usuarios, usuarioAtualId, isAdmin }: Props) {
   const [open, setOpen] = useState(false)
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
+  const [telefone, setTelefone] = useState('')
   const [senha, setSenha] = useState('')
   const [loading, setLoading] = useState(false)
   const [excluindoId, setExcluindoId] = useState<string | null>(null)
@@ -42,7 +43,7 @@ export function UsuariosClient({ usuarios, usuarioAtualId, isAdmin }: Props) {
     const res = await fetch('/api/usuarios', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, email, senha }),
+      body: JSON.stringify({ nome, email, senha, telefone_whatsapp: telefone || null }),
     })
     const data = await res.json()
     setLoading(false)
@@ -50,6 +51,7 @@ export function UsuariosClient({ usuarios, usuarioAtualId, isAdmin }: Props) {
       showToast(`Usuário "${nome}" criado com sucesso!`, 'success')
       setNome('')
       setEmail('')
+      setTelefone('')
       setSenha('')
       setOpen(false)
       router.push('/usuarios')
@@ -100,6 +102,10 @@ export function UsuariosClient({ usuarios, usuarioAtualId, isAdmin }: Props) {
                   <div>
                     <Label htmlFor="email">E-mail</Label>
                     <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="maria@empresa.com" required />
+                  </div>
+                  <div>
+                    <Label htmlFor="telefone">Celular / WhatsApp</Label>
+                    <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Ex: 21991234567" required />
                   </div>
                   <div>
                     <Label htmlFor="senha">Senha</Label>
