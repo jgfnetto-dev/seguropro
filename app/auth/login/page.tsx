@@ -107,8 +107,7 @@ export default function LoginPage() {
               </button>
             </form>
           ) : (
-            <>
-              <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <div>
                   <label className="label-caps text-on-surface-variant block mb-1">E-mail profissional</label>
                   <div className="relative">
@@ -174,13 +173,7 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full mt-2" disabled={loading}>
                   {loading ? 'Entrando...' : 'Entrar →'}
                 </Button>
-              </form>
-
-              <p className="text-center text-body-sm text-on-surface-variant mt-4">
-                Ainda não tem uma conta?{' '}
-                <span className="text-secondary hover:underline cursor-pointer">Solicitar demonstração</span>
-              </p>
-            </>
+            </form>
           )}
         </div>
 
