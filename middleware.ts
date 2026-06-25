@@ -53,6 +53,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
+  // Força a troca de senha no primeiro acesso: qualquer navegação de página (exceto
+  // a própria tela de troca e as rotas de API) é redirecionada até a senha ser alterada.
+  const forcaTrocaSenhaPath = '/auth/trocar-senha-obrigatoria'
+  if (session && !pathname.startsWith('/api') && pathname !== forcaTrocaSenhaPath) {
+    const { data: usuario } = await supabase
+      .from('usuarios')
+      .select('senha_deve_ser_alterada')
+      .eq('id', session.user.id)
+      .single()
+    if (usuario?.senha_deve_ser_alterada) {
+      return NextResponse.redirect(new URL(forcaTrocaSenhaPath, request.url))
+    }
+  }
+
   return response
 }
 

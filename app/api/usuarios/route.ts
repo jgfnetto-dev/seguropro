@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await serviceClient
     .from('usuarios')
-    .insert({ id: authUser.user.id, corretora_id: requester.corretora_id, email, nome, adm: 'N' })
+    .insert({ id: authUser.user.id, corretora_id: requester.corretora_id, email, nome, adm: 'N', senha_deve_ser_alterada: true })
     .select('id, nome, email, telefone_whatsapp, adm, criado_em')
     .single()
 

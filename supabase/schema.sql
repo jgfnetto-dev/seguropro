@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   telefone_whatsapp text,
   adm text NOT NULL DEFAULT 'N' CHECK (adm IN ('S', 'N')),
   notificacao_renovacoes_enviada_em date,
+  senha_deve_ser_alterada boolean NOT NULL DEFAULT true,
   criado_em timestamptz DEFAULT now()
 );
 
