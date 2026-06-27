@@ -99,7 +99,7 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
           <h1 className="text-h1 text-on-surface">Controle de Renovações</h1>
           <p className="text-body-sm text-on-surface-variant mt-1">Gerencie as apólices que expiram em breve e mantenha sua carteira ativa.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="label-caps text-on-surface-variant">Mês de Referência</span>
           <div className="flex items-center gap-1 bg-card border border-outline-variant rounded-lg px-3 py-1.5">
             <Link href={`/renovacoes?mes=${prevMes}&ano=${prevAno}`}>
@@ -110,6 +110,27 @@ export default async function RenovacoesPage({ searchParams }: { searchParams: {
               <button className="p-0.5 hover:text-primary"><ChevronRight className="w-4 h-4" /></button>
             </Link>
           </div>
+          <form method="GET" className="flex items-center gap-2">
+            <select
+              name="mes"
+              defaultValue={String(mes)}
+              className="h-9 px-2 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {Array.from({ length: 12 }).map((_, i) => (
+                <option key={i} value={i}>{getMonthName(i)}</option>
+              ))}
+            </select>
+            <input
+              name="ano"
+              type="number"
+              defaultValue={ano}
+              placeholder="AAAA"
+              className="h-9 w-24 px-2 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <button type="submit" className="h-9 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container">
+              Filtrar
+            </button>
+          </form>
         </div>
       </div>
 
