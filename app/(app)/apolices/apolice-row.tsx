@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Download, ChevronDown, Trash2, Paperclip } from 'lucide-react'
+import { Download, ChevronDown, Trash2, Files } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
 import { DeleteApoliceButton } from './delete-button'
@@ -23,7 +23,7 @@ function DocumentosButton({ documentos }: { documentos: DocumentoApolice[] }) {
           title="Ver documentos da apólice"
           className="p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
         >
-          <Paperclip className="w-4 h-4" />
+          <Files className="w-4 h-4" />
         </button>
       </DialogTrigger>
       <DialogContent>
