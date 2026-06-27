@@ -91,3 +91,46 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ success: true, clienteRemovido })
 }
+
+export async function DELETE(req: NextRequest) {
+  const supabase = await createServerSupabaseClient()
+  const corretora_id = await getCorretoraId(supabase)
+  if (!corretora_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const id = req.nextUrl.searchParams.get('id')
+  const mes = req.nextUrl.searchParams.get('mes')
+  const ano = req.nextUrl.searchParams.get('ano')
+
+  if (id) {
+    const { error } = await supabase.from('historico_renovacao').delete().eq('id', id).eq('corretora_id', corretora_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true, excluidos: 1 })
+  }
+
+  if (mes && ano) {
+    const mesNum = parseInt(mes)
+    const anoNum = parseInt(ano)
+    const { data: registros, error: fetchError } = await supabase
+      .from('historico_renovacao')
+      .select('id, apolice')
+      .eq('corretora_id', corretora_id)
+    if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 })
+
+    const idsParaExcluir = (registros ?? [])
+      .filter((r) => {
+        const dataFim = r.apolice?.data_fim
+        if (!dataFim) return false
+        const d = new Date(dataFim)
+        return d.getMonth() + 1 === mesNum && d.getFullYear() === anoNum
+      })
+      .map((r) => r.id)
+
+    if (!idsParaExcluir.length) return NextResponse.json({ success: true, excluidos: 0 })
+
+    const { error: deleteError } = await supabase.from('historico_renovacao').delete().in('id', idsParaExcluir).eq('corretora_id', corretora_id)
+    if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    return NextResponse.json({ success: true, excluidos: idsParaExcluir.length })
+  }
+
+  return NextResponse.json({ error: 'Informe id ou mes/ano.' }, { status: 400 })
+}

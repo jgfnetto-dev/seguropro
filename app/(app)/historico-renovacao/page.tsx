@@ -5,6 +5,8 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import { Card } from '@/components/ui/card'
 import { Search } from 'lucide-react'
 import { HistoricoRow } from './historico-row'
+import { ExcluirPorVencimentoButton } from './excluir-por-vencimento-button'
+import { MESES, anosDisponiveis } from '@/lib/utils'
 import type { HistoricoRenovacao } from '@/types'
 
 export default async function HistoricoRenovacaoPage({ searchParams }: { searchParams: { q?: string } }) {
@@ -26,9 +28,12 @@ export default async function HistoricoRenovacaoPage({ searchParams }: { searchP
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-h1 text-on-surface">Histórico de Renovações</h1>
-        <p className="text-body-sm text-on-surface-variant mt-1">Consulte as apólices renovadas ou canceladas que foram arquivadas.</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-h1 text-on-surface">Histórico de Renovações</h1>
+          <p className="text-body-sm text-on-surface-variant mt-1">Consulte as apólices renovadas ou canceladas que foram arquivadas.</p>
+        </div>
+        <ExcluirPorVencimentoButton meses={MESES} anos={anosDisponiveis()} />
       </div>
 
       <form method="GET" className="relative max-w-md">

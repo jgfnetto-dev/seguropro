@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { ChevronDown, Download, Paperclip } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ChevronDown, Download, Paperclip, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/components/ui/toast'
 import { formatDate, formatCurrency, formatCpfCnpj } from '@/lib/utils'
 import type { HistoricoRenovacao } from '@/types'
 
@@ -11,12 +13,30 @@ interface Props {
 }
 
 export function HistoricoRow({ registro: h, index }: Props) {
+  const router = useRouter()
+  const { showToast, ToastComponent } = useToast()
   const [expanded, setExpanded] = useState(false)
+  const [excluindo, setExcluindo] = useState(false)
   const zebra = index % 2 === 0 ? '' : 'bg-surface-container-low/40'
   const temDetalhes = h.conciliacoes.length > 0 || h.endossos.length > 0 || h.status_renovacoes.length > 0 || h.documentos.length > 0
 
+  async function handleExcluir() {
+    if (!confirm(`Excluir o registro de histórico da apólice nº ${h.numero_apolice}?`)) return
+    setExcluindo(true)
+    const res = await fetch(`/api/historico-renovacao?id=${h.id}`, { method: 'DELETE' })
+    const data = await res.json()
+    setExcluindo(false)
+    if (!res.ok) {
+      showToast(`Erro ao excluir registro: ${data.error ?? 'falha desconhecida'}`, 'error')
+      return
+    }
+    showToast('Registro excluído.', 'success')
+    router.refresh()
+  }
+
   return (
     <>
+      {ToastComponent}
       <tr className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${zebra}`}>
         <td className="px-2 py-3">
           {temDetalhes && (
@@ -63,6 +83,15 @@ export function HistoricoRow({ registro: h, index }: Props) {
                 <Download className="w-4 h-4" />
               </a>
             )}
+            <button
+              type="button"
+              onClick={handleExcluir}
+              disabled={excluindo}
+              title="Excluir registro do histórico"
+              className="inline-flex p-1.5 rounded border border-outline-variant bg-card hover:bg-error/10 text-on-surface-variant hover:text-error disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
         </td>
       </tr>
