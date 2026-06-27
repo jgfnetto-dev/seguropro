@@ -140,6 +140,16 @@ export interface EndossoExtractResult {
   chassi?: string
 }
 
+export interface DocumentoApolice {
+  id: string
+  corretora_id: string
+  apolice_id: string
+  numero_apolice: string
+  nome_documento: string
+  documento_url: string
+  criado_em: string
+}
+
 export interface HistoricoRenovacao {
   id: string
   corretora_id: string
@@ -151,6 +161,7 @@ export interface HistoricoRenovacao {
   conciliacoes: Conciliacao[]
   endossos: Endosso[]
   status_renovacoes: StatusRenovacao[]
+  documentos: DocumentoApolice[]
   arquivado_em: string
 }
 

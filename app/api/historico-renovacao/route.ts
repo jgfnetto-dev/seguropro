@@ -39,10 +39,11 @@ export async function POST(req: NextRequest) {
     .single()
   if (apoliceError || !apolice) return NextResponse.json({ error: 'Apólice não encontrada.' }, { status: 404 })
 
-  const [{ data: statusRows }, { data: conciliacoes }, { data: endossos }] = await Promise.all([
+  const [{ data: statusRows }, { data: conciliacoes }, { data: endossos }, { data: documentos }] = await Promise.all([
     supabase.from('status_renovacao').select('*').eq('apolice_id', apolice_id).order('criado_em', { ascending: false }),
     supabase.from('conciliacao').select('*').eq('apolice_id', apolice_id).order('criado_em', { ascending: false }),
     supabase.from('endossos').select('*').eq('apolice_id', apolice_id).order('criado_em', { ascending: false }),
+    supabase.from('documentos_apolice').select('*').eq('apolice_id', apolice_id).order('criado_em', { ascending: false }),
   ])
 
   const statusFinal = statusRows?.[0]?.status
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
     conciliacoes: conciliacoes ?? [],
     endossos: endossos ?? [],
     status_renovacoes: statusRows ?? [],
+    documentos: documentos ?? [],
   })
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
 
@@ -69,6 +71,7 @@ export async function POST(req: NextRequest) {
     supabase.from('conciliacao').delete().eq('apolice_id', apolice_id),
     supabase.from('endossos').delete().eq('apolice_id', apolice_id),
     supabase.from('status_renovacao').delete().eq('apolice_id', apolice_id),
+    supabase.from('documentos_apolice').delete().eq('apolice_id', apolice_id),
   ])
 
   const { error: deleteApoliceError } = await supabase.from('apolices').delete().eq('id', apolice_id).eq('corretora_id', corretora_id)

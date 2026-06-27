@@ -50,12 +50,16 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
   }
 
-  const [{ data: apolices }, { data: todasApolices }, { data: endossos }] = await Promise.all([
+  const [{ data: apolices }, { data: todasApolices }, { data: endossos }, { data: documentos }] = await Promise.all([
     query,
     supabase.from('apolices').select('cliente_id'),
     supabase
       .from('endossos')
       .select('id, apolice_id, numero_endosso, tipo_endosso, segurado, data_emissao, data_inicio, data_fim, veiculo, ano, modelo, placa, chassi, pdf_url')
+      .order('criado_em', { ascending: false }),
+    supabase
+      .from('documentos_apolice')
+      .select('id, apolice_id, nome_documento, documento_url')
       .order('criado_em', { ascending: false }),
   ])
 
@@ -77,6 +81,13 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     const lista = endossosPorApolice.get(e.apolice_id) ?? []
     lista.push(e)
     endossosPorApolice.set(e.apolice_id, lista)
+  })
+
+  const documentosPorApolice = new Map<string, NonNullable<typeof documentos>>()
+  documentos?.forEach((d) => {
+    const lista = documentosPorApolice.get(d.apolice_id) ?? []
+    lista.push(d)
+    documentosPorApolice.set(d.apolice_id, lista)
   })
 
   function getStatusBadge(dataFim: string) {
@@ -182,6 +193,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
                 index={i}
                 isUltimaApoliceDoCliente={(contagemPorCliente.get(a.cliente_id) ?? 0) <= 1}
                 endossos={endossosPorApolice.get(a.id) ?? []}
+                documentos={documentosPorApolice.get(a.id) ?? []}
                 statusBadge={getStatusBadge(a.data_fim)}
               />
             ))}

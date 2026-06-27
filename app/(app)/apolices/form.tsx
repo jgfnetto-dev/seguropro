@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDropzone } from 'react-dropzone'
-import { FileUp, Loader2 } from 'lucide-react'
+import { FileUp, Loader2, Plus, X, Download, Paperclip } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/components/ui/toast'
 import { TIPOS_SEGURO } from '@/lib/utils'
-import type { Apolice } from '@/types'
+import type { Apolice, DocumentoApolice } from '@/types'
 
 function onlyDigits(value: string) {
   return value.replace(/\D/g, '')
@@ -46,15 +46,21 @@ interface PendingCliente {
   telefone: string | null
 }
 
+interface DocumentoPendente {
+  nomeDocumento: string
+  file: File
+}
+
 interface Props {
   apolice?: Apolice
   seguradoras: { id: string; nome: string; ramos?: string[] }[]
   clientes: { id: string; segurado: string; cpf_cnpj?: string }[]
   defaultClienteId?: string
   isEdit?: boolean
+  documentosExistentes?: DocumentoApolice[]
 }
 
-export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, isEdit }: Props) {
+export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, isEdit, documentosExistentes }: Props) {
   const router = useRouter()
   const { showToast, ToastComponent } = useToast()
   const [clientesList, setClientesList] = useState(clientes)
@@ -75,6 +81,10 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
   const [extracting, setExtracting] = useState(false)
   const [loading, setLoading] = useState(false)
   const [pendingCliente, setPendingCliente] = useState<PendingCliente | null>(null)
+  const [documentosAtuais, setDocumentosAtuais] = useState<DocumentoApolice[]>(documentosExistentes ?? [])
+  const [documentosPendentes, setDocumentosPendentes] = useState<DocumentoPendente[]>([])
+  const [novoNomeDocumento, setNovoNomeDocumento] = useState('')
+  const [novoArquivoDocumento, setNovoArquivoDocumento] = useState<File | null>(null)
 
   const onDrop = useCallback(async (files: File[]) => {
     const file = files[0]
@@ -161,6 +171,29 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
     }
     reader.readAsDataURL(file)
   }, [showToast])
+
+  function adicionarDocumentoPendente() {
+    if (!novoNomeDocumento.trim()) { showToast('Informe o nome do documento.', 'error'); return }
+    if (!novoArquivoDocumento) { showToast('Selecione o arquivo do documento.', 'error'); return }
+    setDocumentosPendentes((prev) => [...prev, { nomeDocumento: novoNomeDocumento.trim(), file: novoArquivoDocumento }])
+    setNovoNomeDocumento('')
+    setNovoArquivoDocumento(null)
+  }
+
+  function removerDocumentoPendente(index: number) {
+    setDocumentosPendentes((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  async function excluirDocumentoExistente(id: string) {
+    if (!confirm('Excluir este documento da apólice?')) return
+    const res = await fetch(`/api/documentos-apolice?id=${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setDocumentosAtuais((prev) => prev.filter((d) => d.id !== id))
+      showToast('Documento excluído.', 'success')
+    } else {
+      showToast('Erro ao excluir documento.', 'error')
+    }
+  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -258,6 +291,31 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
       const res = await fetch('/api/apolices', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
       if (res.ok) {
+        const apoliceIdFinal = isEdit ? apolice?.id : data.id
+
+        if (apoliceIdFinal && documentosPendentes.length) {
+          for (const doc of documentosPendentes) {
+            const formDataDoc = new FormData()
+            formDataDoc.append('file', doc.file)
+            const uploadDocRes = await fetch('/api/apolices/upload', { method: 'POST', body: formDataDoc })
+            const uploadDocData = await uploadDocRes.json()
+            if (!uploadDocRes.ok) {
+              showToast(`Erro no upload do documento "${doc.nomeDocumento}": ${uploadDocData.error ?? 'falha desconhecida'}`, 'error')
+              continue
+            }
+            await fetch('/api/documentos-apolice', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                apolice_id: apoliceIdFinal,
+                numero_apolice: numeroApolice,
+                nome_documento: doc.nomeDocumento,
+                documento_url: uploadDocData.url,
+              }),
+            })
+          }
+        }
+
         showToast(isEdit ? 'Apólice atualizada!' : 'Apólice salva!', 'success')
         setTimeout(() => {
           router.push('/apolices')
@@ -409,6 +467,66 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
                     <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} required />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-5 space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Paperclip className="w-4 h-4 text-secondary" />
+                  <h3 className="text-h3 text-on-surface">Documentos</h3>
+                </div>
+
+                {documentosAtuais.length > 0 && (
+                  <div className="space-y-2">
+                    {documentosAtuais.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-outline-variant bg-surface-container-low">
+                        <span className="text-body-sm text-on-surface truncate">{doc.nome_documento}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <a href={doc.documento_url} target="_blank" rel="noopener noreferrer" title="Baixar" className="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface">
+                            <Download className="w-4 h-4" />
+                          </a>
+                          <button type="button" onClick={() => excluirDocumentoExistente(doc.id)} title="Excluir" className="p-1.5 rounded hover:bg-error/10 text-on-surface-variant hover:text-error">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {documentosPendentes.length > 0 && (
+                  <div className="space-y-2">
+                    {documentosPendentes.map((doc, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-primary/30 bg-primary/5">
+                        <span className="text-body-sm text-on-surface truncate">{doc.nomeDocumento} <span className="text-on-surface-variant">— {doc.file.name}</span></span>
+                        <button type="button" onClick={() => removerDocumentoPendente(i)} title="Remover" className="p-1.5 rounded hover:bg-error/10 text-on-surface-variant hover:text-error shrink-0">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
+                  <div>
+                    <Label>Nome do Documento</Label>
+                    <Input value={novoNomeDocumento} onChange={(e) => setNovoNomeDocumento(e.target.value)} placeholder="Ex: Proposta" />
+                  </div>
+                  <div>
+                    <Label>Arquivo</Label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg"
+                      onChange={(e) => setNovoArquivoDocumento(e.target.files?.[0] ?? null)}
+                      className="flex h-10 w-full rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-sm text-on-surface file:mr-2 file:text-on-surface-variant"
+                    />
+                  </div>
+                  <Button type="button" variant="outline" onClick={adicionarDocumentoPendente} className="gap-1">
+                    <Plus className="w-4 h-4" /> Adicionar
+                  </Button>
+                </div>
+                <p className="text-xs text-on-surface-variant">Formatos aceitos: PDF, Word ou JPEG. Os documentos só são enviados ao salvar a apólice.</p>
               </CardContent>
             </Card>
           </form>

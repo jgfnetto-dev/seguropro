@@ -2,11 +2,54 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Download, ChevronDown, Trash2 } from 'lucide-react'
+import { Download, ChevronDown, Trash2, Paperclip } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
 import { DeleteApoliceButton } from './delete-button'
 import { EndossoButton } from './endosso-button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+
+interface DocumentoApolice {
+  id: string
+  nome_documento: string
+  documento_url: string
+}
+
+function DocumentosButton({ documentos }: { documentos: DocumentoApolice[] }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          title="Ver documentos da apólice"
+          className="p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+        >
+          <Paperclip className="w-4 h-4" />
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Documentos da Apólice</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          {documentos.map((doc) => (
+            <div key={doc.id} className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-outline-variant bg-surface-container-low">
+              <span className="text-body-sm text-on-surface truncate">{doc.nome_documento}</span>
+              <a
+                href={doc.documento_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Baixar"
+                className="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface shrink-0"
+              >
+                <Download className="w-4 h-4" />
+              </a>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 interface Endosso {
   id: string
@@ -44,10 +87,11 @@ interface Props {
   index: number
   isUltimaApoliceDoCliente: boolean
   endossos: Endosso[]
+  documentos: DocumentoApolice[]
   statusBadge: React.ReactNode
 }
 
-export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endossos, statusBadge }: Props) {
+export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endossos, documentos, statusBadge }: Props) {
   const router = useRouter()
   const { showToast, ToastComponent } = useToast()
   const [expanded, setExpanded] = useState(false)
@@ -114,6 +158,7 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
                 <Download className="w-4 h-4" />
               </a>
             )}
+            {documentos.length > 0 && <DocumentosButton documentos={documentos} />}
             <EndossoButton apoliceId={a.id} numeroApolice={a.numero_apolice} />
             <DeleteApoliceButton
               id={a.id}

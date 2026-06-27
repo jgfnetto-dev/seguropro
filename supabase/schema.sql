@@ -100,6 +100,16 @@ CREATE TABLE IF NOT EXISTS endossos (
   criado_em timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS documentos_apolice (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  corretora_id uuid REFERENCES corretoras(id) NOT NULL,
+  apolice_id uuid REFERENCES apolices(id) NOT NULL,
+  numero_apolice text NOT NULL,
+  nome_documento text NOT NULL,
+  documento_url text NOT NULL,
+  criado_em timestamptz DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS historico_renovacao (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   corretora_id uuid REFERENCES corretoras(id) NOT NULL,
@@ -111,6 +121,7 @@ CREATE TABLE IF NOT EXISTS historico_renovacao (
   conciliacoes jsonb NOT NULL DEFAULT '[]',
   endossos jsonb NOT NULL DEFAULT '[]',
   status_renovacoes jsonb NOT NULL DEFAULT '[]',
+  documentos jsonb NOT NULL DEFAULT '[]',
   arquivado_em timestamptz DEFAULT now()
 );
 
@@ -134,6 +145,7 @@ ALTER TABLE apolices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE status_renovacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conciliacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE endossos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documentos_apolice ENABLE ROW LEVEL SECURITY;
 ALTER TABLE historico_renovacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tarefas ENABLE ROW LEVEL SECURITY;
 
@@ -163,6 +175,10 @@ CREATE POLICY "conciliacao_corretora" ON conciliacao FOR ALL
 
 DROP POLICY IF EXISTS "endossos_corretora" ON endossos;
 CREATE POLICY "endossos_corretora" ON endossos FOR ALL
+  USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
+
+DROP POLICY IF EXISTS "documentos_apolice_corretora" ON documentos_apolice;
+CREATE POLICY "documentos_apolice_corretora" ON documentos_apolice FOR ALL
   USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "historico_renovacao_corretora" ON historico_renovacao;

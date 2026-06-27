@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { ChevronDown, Download } from 'lucide-react'
+import { ChevronDown, Download, Paperclip } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { formatDate, formatCurrency, formatCpfCnpj } from '@/lib/utils'
 import type { HistoricoRenovacao } from '@/types'
@@ -13,7 +13,7 @@ interface Props {
 export function HistoricoRow({ registro: h, index }: Props) {
   const [expanded, setExpanded] = useState(false)
   const zebra = index % 2 === 0 ? '' : 'bg-surface-container-low/40'
-  const temDetalhes = h.conciliacoes.length > 0 || h.endossos.length > 0 || h.status_renovacoes.length > 0
+  const temDetalhes = h.conciliacoes.length > 0 || h.endossos.length > 0 || h.status_renovacoes.length > 0 || h.documentos.length > 0
 
   return (
     <>
@@ -41,17 +41,29 @@ export function HistoricoRow({ registro: h, index }: Props) {
         </td>
         <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(h.arquivado_em.split('T')[0])}</td>
         <td className="px-2 py-3 text-right">
-          {h.apolice?.pdf_url && (
-            <a
-              href={h.apolice.pdf_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Baixar PDF da apólice"
-              className="inline-flex p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
-            >
-              <Download className="w-4 h-4" />
-            </a>
-          )}
+          <div className="flex items-center justify-end gap-1">
+            {h.documentos.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                title="Ver documentos da apólice"
+                className="inline-flex p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+              >
+                <Paperclip className="w-4 h-4" />
+              </button>
+            )}
+            {h.apolice?.pdf_url && (
+              <a
+                href={h.apolice.pdf_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Baixar PDF da apólice"
+                className="inline-flex p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+              >
+                <Download className="w-4 h-4" />
+              </a>
+            )}
+          </div>
         </td>
       </tr>
       {expanded && temDetalhes && (
@@ -145,6 +157,28 @@ export function HistoricoRow({ registro: h, index }: Props) {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+
+              {h.documentos.length > 0 && (
+                <div>
+                  <p className="label-caps text-on-surface-variant mb-2">Documentos</p>
+                  <div className="space-y-2">
+                    {h.documentos.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-outline-variant bg-card">
+                        <span className="text-body-sm text-on-surface truncate">{doc.nome_documento}</span>
+                        <a
+                          href={doc.documento_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Baixar"
+                          className="inline-flex p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface shrink-0"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

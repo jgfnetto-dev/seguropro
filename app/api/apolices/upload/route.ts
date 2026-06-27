@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await serviceClient.storage
     .from('apolices-pdf')
-    .upload(filename, arrayBuffer, { contentType: 'application/pdf', upsert: true })
+    .upload(filename, arrayBuffer, { contentType: file.type || 'application/octet-stream', upsert: true })
 
   if (error) {
     console.error('[apolices/upload] erro:', error.message)
