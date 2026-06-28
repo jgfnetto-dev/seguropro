@@ -7,6 +7,7 @@ import { formatDate, formatCurrency } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
 import { DeleteApoliceButton } from './delete-button'
 import { EndossoButton } from './endosso-button'
+import { EnviarApoliceButton } from './enviar-apolice-button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
 interface DocumentoApolice {
@@ -78,7 +79,7 @@ interface ApoliceRowData {
   premio_liquido: number
   premio_total: number
   pdf_url?: string | null
-  cliente?: { segurado?: string }
+  cliente?: { segurado?: string; telefone?: string | null; email?: string | null }
   seguradora?: { nome?: string }
 }
 
@@ -159,6 +160,14 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
               </a>
             )}
             {documentos.length > 0 && <DocumentosButton documentos={documentos} />}
+            <EnviarApoliceButton
+              apoliceId={a.id}
+              numeroApolice={a.numero_apolice}
+              clienteNome={a.cliente?.segurado ?? ''}
+              telefoneCliente={a.cliente?.telefone}
+              temEmail={!!a.cliente?.email}
+              temPdf={!!a.pdf_url}
+            />
             <EndossoButton apoliceId={a.id} numeroApolice={a.numero_apolice} />
             <DeleteApoliceButton
               id={a.id}

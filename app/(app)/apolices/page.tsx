@@ -23,7 +23,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
 
   let query = supabase
     .from('apolices')
-    .select('*, cliente:clientes(segurado, cpf_cnpj), seguradora:seguradoras(nome)')
+    .select('*, cliente:clientes(segurado, cpf_cnpj, telefone, email), seguradora:seguradoras(nome)')
 
   if (sort === 'data_fim') {
     query = query.order('data_fim', { ascending })
