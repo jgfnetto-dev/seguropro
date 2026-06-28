@@ -79,7 +79,7 @@ interface ApoliceRowData {
   premio_liquido: number
   premio_total: number
   pdf_url?: string | null
-  cliente?: { segurado?: string; telefone?: string | null; email?: string | null }
+  cliente?: { segurado?: string; telefone?: string | null }
   seguradora?: { nome?: string }
 }
 
@@ -165,7 +165,6 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
               numeroApolice={a.numero_apolice}
               clienteNome={a.cliente?.segurado ?? ''}
               telefoneCliente={a.cliente?.telefone}
-              temEmail={!!a.cliente?.email}
               temPdf={!!a.pdf_url}
             />
             <EndossoButton apoliceId={a.id} numeroApolice={a.numero_apolice} />

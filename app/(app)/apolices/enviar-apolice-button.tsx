@@ -12,11 +12,10 @@ interface Props {
   numeroApolice: string
   clienteNome: string
   telefoneCliente?: string | null
-  temEmail: boolean
   temPdf: boolean
 }
 
-export function EnviarApoliceButton({ apoliceId, numeroApolice, clienteNome, telefoneCliente, temEmail, temPdf }: Props) {
+export function EnviarApoliceButton({ apoliceId, numeroApolice, clienteNome, telefoneCliente, temPdf }: Props) {
   const { showToast, ToastComponent } = useToast()
   const [open, setOpen] = useState(false)
   const [telefone, setTelefone] = useState(telefoneCliente ?? '')
@@ -36,10 +35,7 @@ export function EnviarApoliceButton({ apoliceId, numeroApolice, clienteNome, tel
     const data = await res.json()
     setLoading(false)
     if (res.ok) {
-      showToast(
-        data.emailEnviado ? 'Apólice enviada por WhatsApp e e-mail!' : 'Apólice enviada por WhatsApp! Cliente sem e-mail cadastrado.',
-        'success'
-      )
+      showToast('Apólice enviada por WhatsApp!', 'success')
       setOpen(false)
     } else {
       showToast(`Erro ao enviar apólice: ${data.error ?? 'falha desconhecida'}`, 'error')
@@ -76,8 +72,7 @@ export function EnviarApoliceButton({ apoliceId, numeroApolice, clienteNome, tel
               />
             </div>
             <p className="text-body-sm text-on-surface-variant">
-              O PDF da apólice será enviado via WhatsApp com uma mensagem de agradecimento.
-              {temEmail ? ' O cliente também receberá uma cópia por e-mail.' : ' O cliente não possui e-mail cadastrado, então o envio será apenas por WhatsApp.'}
+              O PDF da apólice será enviado apenas para o número informado, via WhatsApp, com uma mensagem de agradecimento.
             </p>
             <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>

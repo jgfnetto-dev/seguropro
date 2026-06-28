@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { sendWhatsAppDocument } from '@/lib/evolution'
-import { sendEmail } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient()
@@ -19,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   const { data: apolice, error: apoliceError } = await supabase
     .from('apolices')
-    .select('*, cliente:clientes(segurado, email)')
+    .select('*, cliente:clientes(segurado)')
     .eq('id', apolice_id)
     .eq('corretora_id', corretora_id)
     .single()
@@ -33,22 +32,10 @@ export async function POST(req: NextRequest) {
     const fileName = `apolice-${apolice.numero_apolice}.pdf`
     const nomeCliente = apolice.cliente?.segurado ?? 'Cliente'
 
-    const caption = `Olá, ${nomeCliente}! 😊\n\nMuito obrigado pela confiança! Segue em anexo a sua apólice nº ${apolice.numero_apolice}.\n\nEla também será enviada para o seu e-mail, para que fique guardada com você.\n\nQualquer dúvida, estamos à disposição!`
+    const caption = `Olá, ${nomeCliente}! 😊\n\nMuito obrigado pela confiança! Segue em anexo a sua apólice nº ${apolice.numero_apolice}.\n\nQualquer dúvida, estamos à disposição!`
     await sendWhatsAppDocument(telefone, base64, fileName, caption)
 
-    let emailEnviado = false
-    if (apolice.cliente?.email) {
-      await sendEmail({
-        to: apolice.cliente.email,
-        subject: `Sua apólice nº ${apolice.numero_apolice} — SeguroPro`,
-        html: `<p>Olá, ${nomeCliente}!</p><p>Muito obrigado pela confiança! Segue em anexo a sua apólice nº ${apolice.numero_apolice}.</p><p>Qualquer dúvida, estamos à disposição!</p>`,
-        attachmentBase64: base64,
-        attachmentFilename: fileName,
-      })
-      emailEnviado = true
-    }
-
-    return NextResponse.json({ success: true, emailEnviado })
+    return NextResponse.json({ success: true })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Falha ao enviar a apólice.'
     return NextResponse.json({ error: msg }, { status: 500 })
