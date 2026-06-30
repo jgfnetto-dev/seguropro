@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
 
-const MODEL_FALLBACKS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite']
+const MODEL_FALLBACKS = ['gemini-1.5-flash', 'gemini-1.5-flash-8b']
 const MAX_RETRIES_PER_MODEL = 2
 
 function sleep(ms: number) {
