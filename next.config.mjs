@@ -2,7 +2,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
+    serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr', 'pdf-parse', 'pdfjs-dist'],
   },
 }
 
