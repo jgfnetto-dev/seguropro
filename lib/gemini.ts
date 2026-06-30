@@ -44,7 +44,11 @@ async function extractWithText(text: string, prompt: string): Promise<Record<str
   throw lastError instanceof Error ? lastError : new Error('Falha na extração do PDF')
 }
 
-export async function extractPdfData(pdfText: string): Promise<Record<string, unknown>> {
+export async function extractPdfData(pdfText: string, tiposDisponiveis?: string[]): Promise<Record<string, unknown>> {
+  const tipoInstruction = tiposDisponiveis?.length
+    ? `"tipo_seguro": "DEVE ser exatamente um dos seguintes valores (escolha o mais apropriado para o bem/risco segurado): ${tiposDisponiveis.join(', ')}. Não invente um valor fora dessa lista."`
+    : `"tipo_seguro": "tipo de seguro coberto pela apólice (ex: Automóvel, Moto, Vida, Residencial, Empresarial, Saúde, Celular, Bike, Viagem, etc). Use uma palavra curta no formato Capitalizado."`
+
   const prompt = `Extraia os dados desta apólice de seguro e retorne APENAS um JSON válido com os seguintes campos (use null para campos não encontrados):
 {
   "segurado": "nome completo do segurado",
@@ -56,7 +60,7 @@ export async function extractPdfData(pdfText: string): Promise<Record<string, un
   "data_inicio": "data de início da vigência no formato YYYY-MM-DD",
   "data_fim": "data de fim da vigência no formato YYYY-MM-DD",
   "seguradora": "nome da seguradora/empresa que emitiu a apólice (a empresa seguradora, não a corretora). Geralmente aparece próximo de 'Seguradora', 'CNPJ' ou no cabeçalho/logo do documento. Ignore o nome da corretora que intermediou a venda.",
-  "tipo_seguro": "tipo de seguro coberto pela apólice (ex: Automóvel, Moto, Vida, Residencial, Empresarial, Saúde, Celular, Bike, Viagem, etc). Costuma aparecer no título do documento (ex: 'Seguro Celular', 'Seguro Auto') ou na descrição do bem/risco segurado. Use uma palavra curta no formato Capitalizado.",
+  ${tipoInstruction},
   "premio_liquido": número com o prêmio líquido (apenas o número, sem R$),
   "premio_total": número com o prêmio total (apenas o número, sem R$)
 }

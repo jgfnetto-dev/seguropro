@@ -101,8 +101,13 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
     setPdfFile(file)
     setExtracting(true)
     const doExtract = async () => {
+      const allTipos = Array.from(new Set([
+        ...TIPOS_SEGURO,
+        ...seguradoras.flatMap(s => s.ramos ?? []),
+      ]))
       const formDataPdf = new FormData()
       formDataPdf.append('file', file)
+      formDataPdf.append('tipos', JSON.stringify(allTipos))
       try {
         const res = await fetch('/api/pdf-extract', {
           method: 'POST',

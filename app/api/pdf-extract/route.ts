@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'PDF sem texto legível (pode ser escaneado/imagem)' }, { status: 422 })
     }
 
-    const extracted = await extractPdfData(text)
+    const tiposRaw = formData.get('tipos') as string | null
+    const tiposDisponiveis = tiposRaw ? (JSON.parse(tiposRaw) as string[]) : undefined
+    const extracted = await extractPdfData(text, tiposDisponiveis)
     return NextResponse.json(extracted)
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Extraction failed'
