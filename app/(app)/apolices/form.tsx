@@ -548,8 +548,8 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
             <p className="text-xs text-on-surface-variant mt-3">Máximo 10MB • Apenas PDF</p>
           </div>
 
-          <Button form="apolice-form" type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Salvando...' : 'Salvar Apólice'}
+          <Button form="apolice-form" type="submit" className="w-full" disabled={loading || extracting}>
+            {loading ? 'Salvando...' : extracting ? 'Aguardando extração...' : 'Salvar Apólice'}
           </Button>
           <Button type="button" variant="outline" className="w-full" onClick={() => router.back()}>Cancelar</Button>
 
