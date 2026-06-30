@@ -68,7 +68,13 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
   const [seguradoraId, setSeguradoraId] = useState(apolice?.seguradora_id ?? '')
   const [clienteId, setClienteId] = useState(apolice?.cliente_id ?? defaultClienteId ?? '')
   const [tipoSeguro, setTipoSeguro] = useState(apolice?.tipo_seguro ?? '')
-  const [tiposExtra, setTiposExtra] = useState<string[]>([])
+  const [tiposExtra, setTiposExtra] = useState<string[]>(() => {
+    const existente = apolice?.tipo_seguro
+    if (!existente || TIPOS_SEGURO.includes(existente)) return []
+    const seguradoraInicial = seguradoras.find(s => s.id === (apolice?.seguradora_id ?? ''))
+    if (seguradoraInicial?.ramos?.includes(existente)) return []
+    return [existente]
+  })
   const [dataEmissao, setDataEmissao] = useState(apolice?.data_emissao ?? '')
   const [dataInicio, setDataInicio] = useState(apolice?.data_inicio ?? '')
   const [dataFim, setDataFim] = useState(apolice?.data_fim ?? '')
