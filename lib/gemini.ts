@@ -14,7 +14,7 @@ function isRetryable(err: unknown) {
   return status === 503 || status === 429
 }
 
-async function extractWithPrompt(pdfBase64: string, prompt: string): Promise<Record<string, unknown>> {
+async function extractWithText(text: string, prompt: string): Promise<Record<string, unknown>> {
   let lastError: unknown
 
   for (const modelName of MODEL_FALLBACKS) {
@@ -23,17 +23,11 @@ async function extractWithPrompt(pdfBase64: string, prompt: string): Promise<Rec
     for (let attempt = 1; attempt <= MAX_RETRIES_PER_MODEL; attempt++) {
       try {
         const result = await model.generateContent([
-          {
-            inlineData: {
-              mimeType: 'application/pdf',
-              data: pdfBase64,
-            },
-          },
-          { text: prompt },
+          { text: `${prompt}\n\n--- TEXTO DO DOCUMENTO ---\n${text}` },
         ])
 
-        const text = result.response.text()
-        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        const raw = result.response.text()
+        const jsonMatch = raw.match(/\{[\s\S]*\}/)
         if (!jsonMatch) throw new Error('No JSON found in response')
         return JSON.parse(jsonMatch[0])
       } catch (err) {
@@ -50,7 +44,7 @@ async function extractWithPrompt(pdfBase64: string, prompt: string): Promise<Rec
   throw lastError instanceof Error ? lastError : new Error('Falha na extração do PDF')
 }
 
-export async function extractPdfData(pdfBase64: string): Promise<Record<string, unknown>> {
+export async function extractPdfData(pdfText: string): Promise<Record<string, unknown>> {
   const prompt = `Extraia os dados desta apólice de seguro e retorne APENAS um JSON válido com os seguintes campos (use null para campos não encontrados):
 {
   "segurado": "nome completo do segurado",
@@ -68,10 +62,10 @@ export async function extractPdfData(pdfBase64: string): Promise<Record<string, 
 }
 Retorne apenas o JSON, sem explicações adicionais. Mesmo em documentos com layout fora do padrão (tabelas, cartões, colunas), procure cuidadosamente por cada campo antes de retornar null.`
 
-  return extractWithPrompt(pdfBase64, prompt)
+  return extractWithText(pdfText, prompt)
 }
 
-export async function extractEndossoData(pdfBase64: string): Promise<Record<string, unknown>> {
+export async function extractEndossoData(pdfText: string): Promise<Record<string, unknown>> {
   const prompt = `Extraia os dados deste endosso de apólice de seguro e retorne APENAS um JSON válido com os seguintes campos (use null para campos não encontrados):
 {
   "numero_endosso": "número do endosso",
@@ -88,5 +82,5 @@ export async function extractEndossoData(pdfBase64: string): Promise<Record<stri
 }
 Retorne apenas o JSON, sem explicações adicionais. Os campos de veículo só existem em endossos de seguro automotivo; use null quando não se aplicar.`
 
-  return extractWithPrompt(pdfBase64, prompt)
+  return extractWithText(pdfText, prompt)
 }

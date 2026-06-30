@@ -56,39 +56,35 @@ export function EndossoButton({ apoliceId, numeroApolice }: Props) {
     }
     setPdfFile(file)
     setExtracting(true)
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const base64 = (e.target?.result as string).split(',')[1]
-      try {
-        const res = await fetch('/api/endosso-extract', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pdf: base64 }),
-        })
-        const data = await res.json()
-        if (!res.ok) {
-          showToast(`Erro na extração: ${data.error ?? 'falha desconhecida'}`, 'error')
-          return
-        }
-        if (data.numero_endosso) setNumeroEndosso(data.numero_endosso)
-        if (data.tipo_endosso) setTipoEndosso(data.tipo_endosso)
-        if (data.segurado) setSegurado(data.segurado)
-        if (data.data_emissao) setDataEmissao(data.data_emissao)
-        if (data.data_inicio) setDataInicio(data.data_inicio)
-        if (data.data_fim) setDataFim(data.data_fim)
-        if (data.veiculo) setVeiculo(data.veiculo)
-        if (data.ano) setAno(data.ano)
-        if (data.modelo) setModelo(data.modelo)
-        if (data.placa) setPlaca(data.placa)
-        if (data.chassi) setChassi(data.chassi)
-        showToast('Dados do endosso extraídos com sucesso! Confira antes de salvar.', 'success')
-      } catch (err) {
-        showToast(`Erro na extração do PDF: ${err instanceof Error ? err.message : 'desconhecido'}`, 'error')
-      } finally {
-        setExtracting(false)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/endosso-extract', {
+        method: 'POST',
+        body: fd,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        showToast(`Erro na extração: ${data.error ?? 'falha desconhecida'}`, 'error')
+        return
       }
+      if (data.numero_endosso) setNumeroEndosso(data.numero_endosso)
+      if (data.tipo_endosso) setTipoEndosso(data.tipo_endosso)
+      if (data.segurado) setSegurado(data.segurado)
+      if (data.data_emissao) setDataEmissao(data.data_emissao)
+      if (data.data_inicio) setDataInicio(data.data_inicio)
+      if (data.data_fim) setDataFim(data.data_fim)
+      if (data.veiculo) setVeiculo(data.veiculo)
+      if (data.ano) setAno(data.ano)
+      if (data.modelo) setModelo(data.modelo)
+      if (data.placa) setPlaca(data.placa)
+      if (data.chassi) setChassi(data.chassi)
+      showToast('Dados do endosso extraídos com sucesso! Confira antes de salvar.', 'success')
+    } catch (err) {
+      showToast(`Erro na extração do PDF: ${err instanceof Error ? err.message : 'desconhecido'}`, 'error')
+    } finally {
+      setExtracting(false)
     }
-    reader.readAsDataURL(file)
   }, [showToast])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
