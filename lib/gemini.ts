@@ -2,8 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
 
-const MODEL_FALLBACKS = ['gemini-flash-latest', 'gemini-flash-lite-latest']
-const MAX_RETRIES_PER_MODEL = 3
+const MODEL_FALLBACKS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite']
+const MAX_RETRIES_PER_MODEL = 2
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -39,7 +39,7 @@ async function extractWithPrompt(pdfBase64: string, prompt: string): Promise<Rec
       } catch (err) {
         lastError = err
         if (isRetryable(err) && attempt < MAX_RETRIES_PER_MODEL) {
-          await sleep(1500 * attempt)
+          await sleep(800 * attempt)
           continue
         }
         break

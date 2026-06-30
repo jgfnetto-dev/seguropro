@@ -94,14 +94,13 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
     }
     setPdfFile(file)
     setExtracting(true)
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const base64 = (e.target?.result as string).split(',')[1]
+    const doExtract = async () => {
+      const formDataPdf = new FormData()
+      formDataPdf.append('file', file)
       try {
         const res = await fetch('/api/pdf-extract', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pdf: base64 }),
+          body: formDataPdf,
         })
         const data = await res.json()
         if (!res.ok) {
@@ -169,7 +168,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         setExtracting(false)
       }
     }
-    reader.readAsDataURL(file)
+    doExtract()
   }, [showToast])
 
   function adicionarDocumentoPendente() {
@@ -549,8 +548,8 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
             <p className="text-xs text-on-surface-variant mt-3">Máximo 10MB • Apenas PDF</p>
           </div>
 
-          <Button form="apolice-form" type="submit" className="w-full" disabled={loading || extracting}>
-            {loading ? 'Salvando...' : extracting ? 'Aguardando extração...' : 'Salvar Apólice'}
+          <Button form="apolice-form" type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar Apólice'}
           </Button>
           <Button type="button" variant="outline" className="w-full" onClick={() => router.back()}>Cancelar</Button>
 
