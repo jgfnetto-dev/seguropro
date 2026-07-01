@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive, ArchiveRestore, Wallet, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
+import { Users, Shield, RefreshCw, Building2, AlertCircle, HandCoins, Archive, ArchiveRestore, Wallet, TrendingUp, TrendingDown, BarChart3, CalendarClock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate, formatCurrency, NOMES_MESES } from '@/lib/utils'
 
@@ -39,6 +39,9 @@ export default async function DashboardPage() {
   const primeiroNome = usuario?.nome?.split(' ')[0] ?? 'Corretor'
 
   const hojeData = new Date()
+  const ultimoDiaMesAtual = new Date(hojeData.getFullYear(), hojeData.getMonth() + 1, 0).getDate()
+  const diasRestantesNoMes = ultimoDiaMesAtual - hojeData.getDate()
+  const totalRenovacoesMes = renovacoesMes?.length ?? 0
   const mesAnteriorIdx = hojeData.getMonth() === 0 ? 11 : hojeData.getMonth() - 1
   const anoMesAnterior = hojeData.getMonth() === 0 ? hojeData.getFullYear() - 1 : hojeData.getFullYear()
   const inicioMesAnterior = `${anoMesAnterior}-${String(mesAnteriorIdx + 1).padStart(2, '0')}-01`
@@ -208,6 +211,28 @@ export default async function DashboardPage() {
           <h2 className="text-body-md font-semibold text-on-surface mb-2 shrink-0">Alertas Urgentes</h2>
           <Card className="flex-1 min-h-0 overflow-y-auto">
             <CardContent className="p-3 space-y-2">
+              {totalRenovacoesMes > 0 && (
+                <Link href={`/renovacoes?mes=${hojeData.getMonth()}&ano=${hojeData.getFullYear()}`} className="block">
+                  <div className={`flex items-start gap-2.5 p-2.5 rounded border-2 hover:opacity-90 transition-opacity ${
+                    diasRestantesNoMes < 10
+                      ? 'bg-red-50 border-red-400'
+                      : 'bg-amber-50 border-amber-400'
+                  }`}>
+                    <CalendarClock className={`w-4 h-4 mt-0.5 shrink-0 ${diasRestantesNoMes < 10 ? 'text-red-600' : 'text-amber-600'}`} />
+                    <div>
+                      <p className="text-body-sm font-bold text-on-surface">
+                        {totalRenovacoesMes} renovaç{totalRenovacoesMes === 1 ? 'ão' : 'ões'} vencem em {NOMES_MESES[hojeData.getMonth()]}
+                        {diasRestantesNoMes < 10 && (
+                          <span className="ml-2 text-red-600 font-semibold">— {diasRestantesNoMes === 0 ? 'último dia!' : `${diasRestantesNoMes} dia${diasRestantesNoMes === 1 ? '' : 's'} restante${diasRestantesNoMes === 1 ? '' : 's'}!`}</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-on-surface-variant">
+                        Clique para ver as renovações de {NOMES_MESES[hojeData.getMonth()]}/{hojeData.getFullYear()}.
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              )}
               {pendentesHistorico > 0 && (
                 <Link href="/renovacoes" className="block">
                   <div className="flex items-start gap-2.5 p-2.5 rounded bg-amber-50 border-2 border-amber-400 hover:bg-amber-100 transition-colors">
@@ -250,7 +275,7 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                 ))
-              ) : pendentesHistorico === 0 && totalPendenteConciliacao === 0 ? (
+              ) : totalRenovacoesMes === 0 && pendentesHistorico === 0 && totalPendenteConciliacao === 0 ? (
                 <p className="text-body-sm text-on-surface-variant text-center py-4">
                   Nenhum alerta urgente
                 </p>
