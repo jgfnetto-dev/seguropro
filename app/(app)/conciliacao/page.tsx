@@ -6,7 +6,7 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Search, CheckCircle2 } from 'lucide-react'
+import { Search, CheckCircle2, Settings2 } from 'lucide-react'
 import { formatDate, formatCurrency, formatCpfCnpj, MESES, anosDisponiveis } from '@/lib/utils'
 import { ConciliarButton } from './conciliar-button'
 import { HistoricoConciliacaoButton } from './historico-button'
@@ -124,7 +124,9 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap" style={{ minWidth: '120px' }}>Prêmio Líquido</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap" style={{ minWidth: '100px' }}>% Comissão</th>
               <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap" style={{ minWidth: '160px' }}>Comissão</th>
-              <th className="label-caps text-on-surface-variant text-right px-3 py-3 whitespace-nowrap sticky right-0 bg-card shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]" style={{ minWidth: '90px' }}>Ações</th>
+              <th className="text-on-surface-variant text-right px-3 py-3 sticky right-0 bg-card shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]" style={{ minWidth: '90px' }}>
+                <Settings2 className="w-4 h-4 ml-auto" />
+              </th>
             </tr>
           </thead>
           <tbody>
