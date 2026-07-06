@@ -48,12 +48,12 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
     query,
     supabase
       .from('conciliacao')
-      .select('apolice_id, data_conciliacao, valor_conciliar, comentario')
+      .select('id, apolice_id, data_conciliacao, valor_conciliar, comentario')
       .order('data_conciliacao', { ascending: false }),
   ])
 
   const conciliadoPorApolice = new Map<string, number>()
-  const historicoPorApolice = new Map<string, { data_conciliacao: string; valor_conciliar: number; comentario?: string | null }[]>()
+  const historicoPorApolice = new Map<string, { id: string; data_conciliacao: string; valor_conciliar: number; comentario?: string | null }[]>()
   conciliacoes?.forEach((c) => {
     conciliadoPorApolice.set(c.apolice_id, (conciliadoPorApolice.get(c.apolice_id) ?? 0) + Number(c.valor_conciliar))
     const lista = historicoPorApolice.get(c.apolice_id) ?? []
