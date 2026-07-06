@@ -1,7 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Lock, LogOut, User } from 'lucide-react'
+import { Shield, Lock, LogOut, User, Smartphone, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,24 +16,178 @@ interface Props {
   stats: { totalApolices: number; renovacoesMes: number; clientesNovos: number }
 }
 
+type WaStatus = 'idle' | 'loading' | 'connected' | 'qr' | 'disconnected' | 'none' | 'error'
+
+function WhatsAppConnectCard() {
+  const [status, setStatus] = useState<WaStatus>('idle')
+  const [qrcode, setQrcode] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  function stopPoll() {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
+  }
+
+  async function checkStatus() {
+    try {
+      const res = await fetch('/api/whatsapp/conectar')
+      const data = await res.json()
+      if (data.status === 'connected') {
+        setStatus('connected')
+        setQrcode(null)
+        stopPoll()
+      } else if (data.status === 'qr' && data.qrcode) {
+        setStatus('qr')
+        setQrcode(data.qrcode)
+      } else {
+        setStatus('none')
+      }
+    } catch {
+      // silently keep current status on poll failure
+    }
+  }
+
+  useEffect(() => {
+    checkStatus()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (status === 'qr') {
+      stopPoll()
+      pollRef.current = setInterval(checkStatus, 5000)
+    } else {
+      stopPoll()
+    }
+    return stopPoll
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
+  async function handleConnect(reconectar = false) {
+    setStatus('loading')
+    setQrcode(null)
+    setErrorMsg(null)
+    try {
+      const res = await fetch('/api/whatsapp/conectar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: reconectar ? 'reconectar' : 'conectar' }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setErrorMsg(data.error ?? 'Erro ao conectar WhatsApp.')
+        setStatus('error')
+        return
+      }
+      if (data.status === 'qr' && data.qrcode) {
+        setStatus('qr')
+        setQrcode(data.qrcode)
+      } else if (data.status === 'connected') {
+        setStatus('connected')
+      } else {
+        setErrorMsg('QR code não retornado. Verifique o servidor Evolution API.')
+        setStatus('error')
+      }
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : 'Erro de rede ao conectar.')
+      setStatus('error')
+    }
+  }
+
+  if (status === 'idle' || status === 'loading') {
+    return (
+      <div className="flex items-center gap-2 text-on-surface-variant text-body-sm py-2">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span>{status === 'loading' ? 'Conectando…' : 'Verificando conexão WhatsApp…'}</span>
+      </div>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-lg border border-error/30 bg-error/5 px-3 py-2 text-body-sm text-error">
+          {errorMsg}
+        </div>
+        <Button type="button" variant="outline" className="w-full" onClick={() => handleConnect(false)}>
+          <Smartphone className="w-4 h-4 mr-2" />
+          Tentar novamente
+        </Button>
+      </div>
+    )
+  }
+
+  if (status === 'connected') {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+          <span className="text-body-sm text-green-700 font-medium">WhatsApp conectado</span>
+        </div>
+        <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => handleConnect(true)}>
+          <Smartphone className="w-4 h-4 mr-2" />
+          Reconectar com meu número
+        </Button>
+        <p className="text-xs text-on-surface-variant">
+          Clique acima para conectar seu número pessoal. Isso desconectará o número atual.
+        </p>
+      </div>
+    )
+  }
+
+  if (status === 'qr' && qrcode) {
+    const src = qrcode.startsWith('data:') ? qrcode : `data:image/png;base64,${qrcode}`
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
+          <Smartphone className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+          <span className="text-body-sm text-yellow-700 font-medium">Escaneie o QR code com seu WhatsApp</span>
+        </div>
+        <div className="flex justify-center">
+          <img src={src} alt="QR Code WhatsApp" className="w-48 h-48 rounded-lg border border-outline-variant/30" />
+        </div>
+        <p className="text-xs text-on-surface-variant text-center">
+          Abra o WhatsApp → Dispositivos conectados → Conectar dispositivo
+        </p>
+        <Button variant="outline" size="sm" className="w-full" onClick={() => handleConnect(false)}>
+          Gerar novo QR code
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 rounded-lg border border-outline-variant/30 bg-surface-container px-3 py-2">
+        <XCircle className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
+        <span className="text-body-sm text-on-surface-variant">WhatsApp não conectado</span>
+      </div>
+      <Button type="button" variant="outline" className="w-full" onClick={() => handleConnect(false)}>
+        <Smartphone className="w-4 h-4 mr-2" />
+        Conectar WhatsApp
+      </Button>
+      <p className="text-xs text-on-surface-variant">
+        Conecte seu número para que os envios partam do seu WhatsApp.
+      </p>
+    </div>
+  )
+}
+
 export function PerfilClient({ usuario, stats }: Props) {
   const router = useRouter()
   const { showToast, ToastComponent } = useToast()
   const isAdmin = usuario?.adm === 'S'
   const [nome, setNome] = useState(usuario?.nome ?? '')
   const [telefone, setTelefone] = useState(usuario?.telefone_whatsapp ?? '')
-  const [whatsappInstance, setWhatsappInstance] = useState(usuario?.whatsapp_instance ?? '')
   const [loading, setLoading] = useState(false)
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const body: Record<string, string> = { nome, telefone_whatsapp: telefone }
-    if (isAdmin) body.whatsapp_instance = whatsappInstance
     const res = await fetch('/api/usuarios', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ nome, telefone_whatsapp: telefone }),
     })
     setLoading(false)
     if (res.ok) showToast('Alterações salvas!', 'success')
@@ -84,16 +238,9 @@ export function PerfilClient({ usuario, stats }: Props) {
                   <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(11) 99999-9999" />
                 </div>
                 {isAdmin && (
-                  <div>
-                    <Label>Instância WhatsApp (Evolution API)</Label>
-                    <Input
-                      value={whatsappInstance}
-                      onChange={(e) => setWhatsappInstance(e.target.value)}
-                      placeholder="nome-da-instancia"
-                    />
-                    <p className="text-xs text-on-surface-variant mt-1">
-                      Nome da instância cadastrada no Evolution API para envios pelo seu número.
-                    </p>
+                  <div className="space-y-2">
+                    <Label>Conexão WhatsApp para envios</Label>
+                    <WhatsAppConnectCard />
                   </div>
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>

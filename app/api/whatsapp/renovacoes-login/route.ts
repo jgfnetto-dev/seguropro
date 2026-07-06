@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createServerSupabaseClient, createServiceClient } from '@/lib/supabase'
 import { sendWhatsAppMessage } from '@/lib/evolution'
 import { formatDate } from '@/lib/utils'
 
@@ -10,7 +10,7 @@ export async function POST(_req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Resolve corretora_id do usuário logado
+  // Resolve corretora_id do usuário logado (RLS allows own row)
   const { data: usuarioAtual } = await supabase
     .from('usuarios')
     .select('corretora_id')
@@ -21,10 +21,11 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ sent: false, reason: 'Corretora não encontrada.' })
   }
 
-  // Busca o administrador da corretora
-  const { data: admin } = await supabase
+  // Use service client to bypass RLS for reading the admin row
+  const service = createServiceClient()
+  const { data: admin } = await service
     .from('usuarios')
-    .select('id, telefone_whatsapp, whatsapp_instance, notificacao_renovacoes_enviada_em')
+    .select('id, telefone_whatsapp, notificacao_renovacoes_enviada_em')
     .eq('corretora_id', usuarioAtual.corretora_id)
     .eq('adm', 'S')
     .single()
@@ -68,8 +69,8 @@ export async function POST(_req: NextRequest) {
   const texto = `🔄 *Renovações ${mesNome}* — SeguroPro\n\n${lista}\n\nTotal: ${apolices.length} apólice(s) para renovar.`
 
   try {
-    await sendWhatsAppMessage(admin.telefone_whatsapp, texto, admin.whatsapp_instance)
-    await supabase
+    await sendWhatsAppMessage(admin.telefone_whatsapp, texto)
+    await service
       .from('usuarios')
       .update({ notificacao_renovacoes_enviada_em: hoje.toISOString().split('T')[0] })
       .eq('id', admin.id)
