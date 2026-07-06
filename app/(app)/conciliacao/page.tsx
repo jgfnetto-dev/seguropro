@@ -110,22 +110,22 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
       </form>
 
       <Card>
-        <div className="overflow-x-auto">
-        <table className="w-full min-w-[1100px]">
+        <div className="overflow-x-auto w-full">
+        <table className="min-w-max w-full">
           <thead>
             <tr className="border-b border-outline-variant/30">
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Apólice</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">CPF/CNPJ</th>
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Cliente</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Emissão</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Início</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Fim</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Tipo de Seguro</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Vendedor</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Prêmio Líquido</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">% Comissão</th>
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3">Comissão</th>
-              <th className="label-caps text-on-surface-variant text-right px-2 py-3">Ações</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Apólice</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">CPF/CNPJ</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Cliente</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Emissão</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Início</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Fim</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Tipo de Seguro</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Vendedor</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Prêmio Líquido</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">% Comissão</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Comissão</th>
+              <th className="label-caps text-on-surface-variant text-right px-2 py-3 whitespace-nowrap">Ações</th>
             </tr>
           </thead>
           <tbody>
