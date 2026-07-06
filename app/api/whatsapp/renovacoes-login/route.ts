@@ -10,21 +10,34 @@ export async function POST(_req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: usuario } = await supabase
+  // Resolve corretora_id do usuário logado
+  const { data: usuarioAtual } = await supabase
     .from('usuarios')
-    .select('corretora_id, telefone_whatsapp, notificacao_renovacoes_enviada_em')
+    .select('corretora_id')
     .eq('id', session.user.id)
     .single()
 
-  if (!usuario?.telefone_whatsapp) {
-    return NextResponse.json({ sent: false, reason: 'Telefone não configurado no perfil.' })
+  if (!usuarioAtual?.corretora_id) {
+    return NextResponse.json({ sent: false, reason: 'Corretora não encontrada.' })
+  }
+
+  // Busca o administrador da corretora
+  const { data: admin } = await supabase
+    .from('usuarios')
+    .select('id, telefone_whatsapp, notificacao_renovacoes_enviada_em')
+    .eq('corretora_id', usuarioAtual.corretora_id)
+    .eq('adm', 'S')
+    .single()
+
+  if (!admin?.telefone_whatsapp) {
+    return NextResponse.json({ sent: false, reason: 'Telefone não configurado para o administrador da corretora.' })
   }
 
   const hoje = new Date()
   const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0]
   const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0]
 
-  const ultimoEnvio = usuario.notificacao_renovacoes_enviada_em
+  const ultimoEnvio = admin.notificacao_renovacoes_enviada_em
   if (ultimoEnvio) {
     const dataUltimoEnvio = new Date(ultimoEnvio)
     const mesmoMes = dataUltimoEnvio.getFullYear() === hoje.getFullYear() && dataUltimoEnvio.getMonth() === hoje.getMonth()
@@ -36,7 +49,7 @@ export async function POST(_req: NextRequest) {
   const { data: apolices } = await supabase
     .from('apolices')
     .select('numero_apolice, data_fim, cliente:clientes(segurado), seguradora:seguradoras(nome)')
-    .eq('corretora_id', usuario.corretora_id)
+    .eq('corretora_id', usuarioAtual.corretora_id)
     .gte('data_fim', inicio)
     .lte('data_fim', fim)
     .order('data_fim', { ascending: true })
@@ -55,11 +68,11 @@ export async function POST(_req: NextRequest) {
   const texto = `🔄 *Renovações ${mesNome}* — SeguroPro\n\n${lista}\n\nTotal: ${apolices.length} apólice(s) para renovar.`
 
   try {
-    await sendWhatsAppMessage(usuario.telefone_whatsapp, texto)
+    await sendWhatsAppMessage(admin.telefone_whatsapp, texto)
     await supabase
       .from('usuarios')
       .update({ notificacao_renovacoes_enviada_em: hoje.toISOString().split('T')[0] })
-      .eq('id', session.user.id)
+      .eq('id', admin.id)
     return NextResponse.json({ sent: true, total: apolices.length })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'WhatsApp send failed'

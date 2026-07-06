@@ -4,6 +4,7 @@ import { sendWhatsAppDocument } from '@/lib/evolution'
 import { sendEmail } from '@/lib/email'
 import { gerarPdfConciliacao } from '@/lib/pdf'
 import { formatCpfCnpj } from '@/lib/utils'
+import { getAdminWhatsApp } from '@/lib/whatsapp-admin'
 
 const NOMES_MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
@@ -73,12 +74,12 @@ export async function POST(req: NextRequest) {
     const nomeArquivo = `conciliacao-${labelPeriodo.replace(/\//g, '-').replace(/\s/g, '')}.pdf`
 
     if (canal === 'whatsapp') {
-      const { data: usuario } = await supabase.from('usuarios').select('telefone_whatsapp').eq('id', session.user.id).single()
-      if (!usuario?.telefone_whatsapp) {
-        return NextResponse.json({ error: 'Telefone WhatsApp não configurado no perfil.' }, { status: 400 })
+      const { telefone } = await getAdminWhatsApp(supabase, session.user.id)
+      if (!telefone) {
+        return NextResponse.json({ error: 'Telefone WhatsApp não configurado para o administrador da corretora.' }, { status: 400 })
       }
       const caption = `📊 *Relatório de Conciliação — ${labelPeriodo}*\nTotal: ${apolices.length} apólice(s).`
-      await sendWhatsAppDocument(usuario.telefone_whatsapp, base64, nomeArquivo, caption)
+      await sendWhatsAppDocument(telefone, base64, nomeArquivo, caption)
       return NextResponse.json({ success: true, canal: 'whatsapp', total: apolices.length })
     }
 
