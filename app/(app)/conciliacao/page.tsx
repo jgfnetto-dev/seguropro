@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Search, CheckCircle2, Settings2 } from 'lucide-react'
@@ -109,22 +108,34 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
         )}
       </form>
 
-      <div className="overflow-x-auto rounded-lg border border-outline-variant/30 bg-card shadow-card">
-        <table style={{ minWidth: '1700px', width: '100%' }}>
+      <div className="rounded-lg border border-outline-variant/30 bg-card shadow-card overflow-hidden">
+        <table style={{ tableLayout: 'fixed', width: '100%' }}>
+          <colgroup>
+            <col style={{ width: '11%' }} />
+            <col style={{ width: '10%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '9%' }} />
+            <col style={{ width: '6%' }} />
+            <col style={{ width: '9%' }} />
+            <col style={{ width: '7%' }} />
+            <col style={{ width: '11%' }} />
+            <col style={{ width: '7%' }} />
+          </colgroup>
           <thead>
             <tr className="border-b border-outline-variant/30">
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Apólice</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">CPF/CNPJ</th>
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Cliente</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Emissão</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Início</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Fim</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Tipo de Seguro</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Vendedor</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Prêmio Líquido</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">% Comissão</th>
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Comissão</th>
-              <th className="text-on-surface-variant text-right px-3 py-3 whitespace-nowrap">
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3 truncate">Apólice</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">CPF/CNPJ</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">Cliente</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">Emissão</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">Vigência</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">Tipo Seguro</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">Vendedor</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">Prêmio</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">% Com.</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 truncate">Comissão</th>
+              <th className="text-on-surface-variant text-right px-3 py-3">
                 <Settings2 className="w-4 h-4 ml-auto" />
               </th>
             </tr>
@@ -138,19 +149,18 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               const historico = historicoPorApolice.get(a.id) ?? []
               return (
                 <tr key={a.id} className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${i % 2 === 0 ? '' : 'bg-surface-container-low/40'}`}>
-                  <td className="px-3 py-3 text-body-sm font-medium text-on-surface">{a.numero_apolice}</td>
-                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.cliente?.cpf_cnpj ? formatCpfCnpj(a.cliente.cpf_cnpj) : '—'}</td>
-                  <td className="px-3 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
-                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.data_emissao ? formatDate(a.data_emissao) : '—'}</td>
-                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
-                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_fim)}</td>
-                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
+                  <td className="px-3 py-3 text-body-sm font-medium text-on-surface truncate">{a.numero_apolice}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant truncate">{a.cliente?.cpf_cnpj ? formatCpfCnpj(a.cliente.cpf_cnpj) : '—'}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant truncate">{a.data_emissao ? formatDate(a.data_emissao) : '—'}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant truncate">{formatDate(a.data_fim)}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant truncate">{a.tipo_seguro}</td>
                   <td className="px-2 py-3 text-body-sm text-on-surface-variant">
                     {a.vendedor ? <VendedorButton vendedor={a.vendedor} /> : '—'}
                   </td>
-                  <td className="px-2 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
-                  <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-3 text-body-sm text-on-surface truncate">{formatCurrency(a.premio_liquido)}</td>
+                  <td className="px-2 py-3 text-body-sm text-on-surface-variant truncate">{a.comissao_percentual ?? 0}%</td>
+                  <td className="px-2 py-3">
                     {conciliado ? (
                       <div className="flex flex-col gap-0.5">
                         <Badge variant="success" className="gap-1 w-fit whitespace-nowrap">
@@ -163,7 +173,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                     )}
                   </td>
                   <td className="px-3 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1.5">
                       {historico.length > 0 && (
                         <HistoricoConciliacaoButton numeroApolice={a.numero_apolice} historico={historico} />
                       )}
@@ -180,7 +190,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
             })}
             {!apolices?.length && (
               <tr>
-                <td colSpan={12} className="text-center py-12 text-body-sm text-on-surface-variant">
+                <td colSpan={11} className="text-center py-12 text-body-sm text-on-surface-variant">
                   Nenhuma apólice cadastrada
                 </td>
               </tr>
