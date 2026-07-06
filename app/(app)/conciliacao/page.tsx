@@ -109,8 +109,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
         )}
       </form>
 
-      <Card>
-        <div className="overflow-x-auto w-full">
+      <Card className="overflow-x-auto">
         <table className="min-w-max w-full">
           <thead>
             <tr className="border-b border-outline-variant/30">
@@ -186,7 +185,6 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
             )}
           </tbody>
         </table>
-        </div>
         {apolices && apolices.length > 0 && (
           <div className="px-3 py-3 border-t border-outline-variant/20 text-body-sm text-on-surface-variant">
             Exibindo {apolices.length} apólice{apolices.length !== 1 ? 's' : ''}
