@@ -110,7 +110,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
       </form>
 
       <Card className="overflow-x-auto">
-        <table className="w-full" style={{ minWidth: '1260px' }}>
+        <table className="w-full" style={{ minWidth: '1440px' }}>
           <thead>
             <tr className="border-b border-outline-variant/30">
               <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Apólice</th>
@@ -121,10 +121,10 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Fim</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Tipo de Seguro</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Vendedor</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Prêmio Líquido</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">% Comissão</th>
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Comissão</th>
-              <th className="label-caps text-on-surface-variant text-right px-3 py-3 whitespace-nowrap sticky right-0 bg-card shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">Ações</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap" style={{ minWidth: '120px' }}>Prêmio Líquido</th>
+              <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap" style={{ minWidth: '100px' }}>% Comissão</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap" style={{ minWidth: '160px' }}>Comissão</th>
+              <th className="label-caps text-on-surface-variant text-right px-3 py-3 whitespace-nowrap sticky right-0 bg-card shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]" style={{ minWidth: '90px' }}>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -148,10 +148,10 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   </td>
                   <td className="px-2 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
                   <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3" style={{ minWidth: '160px' }}>
                     {conciliado ? (
                       <div className="flex flex-col gap-0.5">
-                        <Badge variant="success" className="gap-1 w-fit">
+                        <Badge variant="success" className="gap-1 w-fit whitespace-nowrap">
                           <CheckCircle2 className="w-3.5 h-3.5" /> Conciliado
                         </Badge>
                         <span className="text-xs font-medium text-green-600">{formatCurrency(jaConciliado)}</span>
