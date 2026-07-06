@@ -109,8 +109,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
         )}
       </form>
 
-      <Card>
-        <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg border border-outline-variant/30 bg-card shadow-card">
         <table style={{ minWidth: '1380px', width: '100%' }}>
           <thead>
             <tr className="border-b border-outline-variant/30">
@@ -188,13 +187,12 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
             )}
           </tbody>
         </table>
-        </div>
         {apolices && apolices.length > 0 && (
           <div className="px-3 py-3 border-t border-outline-variant/20 text-body-sm text-on-surface-variant">
             Exibindo {apolices.length} apólice{apolices.length !== 1 ? 's' : ''}
           </div>
         )}
-      </Card>
+      </div>
     </div>
   )
 }
