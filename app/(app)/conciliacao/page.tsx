@@ -110,7 +110,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
       </form>
 
       <Card className="overflow-x-auto">
-        <table className="w-full" style={{ minWidth: '1300px' }}>
+        <table className="w-full" style={{ minWidth: '1260px' }}>
           <thead>
             <tr className="border-b border-outline-variant/30">
               <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Apólice</th>
@@ -124,7 +124,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Prêmio Líquido</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">% Comissão</th>
               <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Comissão</th>
-              <th className="label-caps text-on-surface-variant text-right px-2 py-3 whitespace-nowrap">Ações</th>
+              <th className="label-caps text-on-surface-variant text-right px-3 py-3 whitespace-nowrap sticky right-0 bg-card shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -160,7 +160,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                       <span className="text-body-sm font-medium text-on-surface">{formatCurrency(comissaoRestante)}</span>
                     )}
                   </td>
-                  <td className="px-2 py-3 text-right">
+                  <td className={`px-3 py-3 text-right sticky right-0 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)] ${i % 2 === 0 ? 'bg-card' : 'bg-surface-container-low/40'}`}>
                     <div className="flex items-center justify-end gap-2">
                       {historico.length > 0 && (
                         <HistoricoConciliacaoButton numeroApolice={a.numero_apolice} historico={historico} />
