@@ -110,7 +110,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
       </form>
 
       <Card className="overflow-x-auto">
-        <table className="w-full" style={{ minWidth: '1440px' }}>
+        <table className="w-full" style={{ minWidth: '1600px' }}>
           <thead>
             <tr className="border-b border-outline-variant/30">
               <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Apólice</th>
@@ -123,7 +123,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap">Vendedor</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap" style={{ minWidth: '120px' }}>Prêmio Líquido</th>
               <th className="label-caps text-on-surface-variant text-left px-2 py-3 whitespace-nowrap" style={{ minWidth: '100px' }}>% Comissão</th>
-              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap" style={{ minWidth: '160px' }}>Comissão</th>
+              <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap" style={{ minWidth: '180px' }}>Comissão</th>
               <th className="text-on-surface-variant text-right px-3 py-3 sticky right-0 bg-card shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]" style={{ minWidth: '90px' }}>
                 <Settings2 className="w-4 h-4 ml-auto" />
               </th>
@@ -150,7 +150,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                   </td>
                   <td className="px-2 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
                   <td className="px-2 py-3 text-body-sm text-on-surface-variant">{a.comissao_percentual ?? 0}%</td>
-                  <td className="px-3 py-3" style={{ minWidth: '160px' }}>
+                  <td className="px-3 py-3 pr-6" style={{ minWidth: '180px' }}>
                     {conciliado ? (
                       <div className="flex flex-col gap-0.5">
                         <Badge variant="success" className="gap-1 w-fit whitespace-nowrap">
