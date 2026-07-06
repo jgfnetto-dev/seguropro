@@ -110,7 +110,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
       </form>
 
       <div className="overflow-x-auto rounded-lg border border-outline-variant/30 bg-card shadow-card">
-        <table style={{ minWidth: '1380px', width: '100%' }}>
+        <table style={{ minWidth: '1700px', width: '100%' }}>
           <thead>
             <tr className="border-b border-outline-variant/30">
               <th className="label-caps text-on-surface-variant text-left px-3 py-3 whitespace-nowrap">Apólice</th>
