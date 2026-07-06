@@ -8,8 +8,9 @@ function normalizePhoneNumber(value: string) {
   return digits
 }
 
-export async function sendWhatsAppMessage(to: string, text: string) {
-  const url = `${process.env.EVOLUTION_API_URL}/message/sendText/${process.env.EVOLUTION_INSTANCE}`
+export async function sendWhatsAppMessage(to: string, text: string, instance?: string | null) {
+  const instanceName = instance || process.env.EVOLUTION_INSTANCE
+  const url = `${process.env.EVOLUTION_API_URL}/message/sendText/${instanceName}`
   const number = normalizePhoneNumber(to)
 
   const res = await fetch(url, {
@@ -29,8 +30,9 @@ export async function sendWhatsAppMessage(to: string, text: string) {
   return res.json()
 }
 
-export async function sendWhatsAppDocument(to: string, base64: string, fileName: string, caption?: string) {
-  const url = `${process.env.EVOLUTION_API_URL}/message/sendMedia/${process.env.EVOLUTION_INSTANCE}`
+export async function sendWhatsAppDocument(to: string, base64: string, fileName: string, caption?: string, instance?: string | null) {
+  const instanceName = instance || process.env.EVOLUTION_INSTANCE
+  const url = `${process.env.EVOLUTION_API_URL}/message/sendMedia/${instanceName}`
   const number = normalizePhoneNumber(to)
 
   const res = await fetch(url, {

@@ -74,12 +74,12 @@ export async function POST(req: NextRequest) {
     const nomeArquivo = `conciliacao-${labelPeriodo.replace(/\//g, '-').replace(/\s/g, '')}.pdf`
 
     if (canal === 'whatsapp') {
-      const { telefone } = await getAdminWhatsApp(supabase, session.user.id)
+      const { telefone, instance } = await getAdminWhatsApp(supabase, session.user.id)
       if (!telefone) {
         return NextResponse.json({ error: 'Telefone WhatsApp não configurado para o administrador da corretora.' }, { status: 400 })
       }
       const caption = `📊 *Relatório de Conciliação — ${labelPeriodo}*\nTotal: ${apolices.length} apólice(s).`
-      await sendWhatsAppDocument(telefone, base64, nomeArquivo, caption)
+      await sendWhatsAppDocument(telefone, base64, nomeArquivo, caption, instance)
       return NextResponse.json({ success: true, canal: 'whatsapp', total: apolices.length })
     }
 

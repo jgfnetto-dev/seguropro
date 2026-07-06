@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   email text UNIQUE NOT NULL,
   nome text NOT NULL,
   telefone_whatsapp text,
+  whatsapp_instance text,
   adm text NOT NULL DEFAULT 'N' CHECK (adm IN ('S', 'N')),
   notificacao_renovacoes_enviada_em date,
   senha_deve_ser_alterada boolean NOT NULL DEFAULT true,

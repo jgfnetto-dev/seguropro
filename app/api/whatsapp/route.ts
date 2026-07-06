@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { telefone } = await getAdminWhatsApp(supabase, session.user.id)
+  const { telefone, instance } = await getAdminWhatsApp(supabase, session.user.id)
   if (!telefone) return NextResponse.json({ error: 'Telefone WhatsApp não configurado para o administrador da corretora.' }, { status: 400 })
 
   const { apolices, mesNome } = await req.json()
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const pdfBuffer = await gerarPdfRenovacoes(apolices, mesNome ?? '')
     const base64 = pdfBuffer.toString('base64')
     const caption = `🔄 Renovações ${mesNome ?? ''} — SeguroPro\nTotal: ${apolices.length} apólice(s) para renovar.`
-    const result = await sendWhatsAppDocument(telefone, base64, `renovacoes-${mesNome ?? 'mes'}.pdf`, caption)
+    const result = await sendWhatsAppDocument(telefone, base64, `renovacoes-${mesNome ?? 'mes'}.pdf`, caption, instance)
     return NextResponse.json(result)
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'WhatsApp send failed'

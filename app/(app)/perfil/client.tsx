@@ -19,17 +19,21 @@ interface Props {
 export function PerfilClient({ usuario, stats }: Props) {
   const router = useRouter()
   const { showToast, ToastComponent } = useToast()
+  const isAdmin = usuario?.adm === 'S'
   const [nome, setNome] = useState(usuario?.nome ?? '')
   const [telefone, setTelefone] = useState(usuario?.telefone_whatsapp ?? '')
+  const [whatsappInstance, setWhatsappInstance] = useState(usuario?.whatsapp_instance ?? '')
   const [loading, setLoading] = useState(false)
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    const body: Record<string, string> = { nome, telefone_whatsapp: telefone }
+    if (isAdmin) body.whatsapp_instance = whatsappInstance
     const res = await fetch('/api/usuarios', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, telefone_whatsapp: telefone }),
+      body: JSON.stringify(body),
     })
     setLoading(false)
     if (res.ok) showToast('Alterações salvas!', 'success')
@@ -79,6 +83,19 @@ export function PerfilClient({ usuario, stats }: Props) {
                   <Label>WhatsApp / Telefone</Label>
                   <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(11) 99999-9999" />
                 </div>
+                {isAdmin && (
+                  <div>
+                    <Label>Instância WhatsApp (Evolution API)</Label>
+                    <Input
+                      value={whatsappInstance}
+                      onChange={(e) => setWhatsappInstance(e.target.value)}
+                      placeholder="nome-da-instancia"
+                    />
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      Nome da instância cadastrada no Evolution API para envios pelo seu número.
+                    </p>
+                  </div>
+                )}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Salvando...' : '💾 Salvar Alterações'}
                 </Button>

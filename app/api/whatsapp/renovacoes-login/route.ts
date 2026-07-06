@@ -24,7 +24,7 @@ export async function POST(_req: NextRequest) {
   // Busca o administrador da corretora
   const { data: admin } = await supabase
     .from('usuarios')
-    .select('id, telefone_whatsapp, notificacao_renovacoes_enviada_em')
+    .select('id, telefone_whatsapp, whatsapp_instance, notificacao_renovacoes_enviada_em')
     .eq('corretora_id', usuarioAtual.corretora_id)
     .eq('adm', 'S')
     .single()
@@ -68,7 +68,7 @@ export async function POST(_req: NextRequest) {
   const texto = `🔄 *Renovações ${mesNome}* — SeguroPro\n\n${lista}\n\nTotal: ${apolices.length} apólice(s) para renovar.`
 
   try {
-    await sendWhatsAppMessage(admin.telefone_whatsapp, texto)
+    await sendWhatsAppMessage(admin.telefone_whatsapp, texto, admin.whatsapp_instance)
     await supabase
       .from('usuarios')
       .update({ notificacao_renovacoes_enviada_em: hoje.toISOString().split('T')[0] })
