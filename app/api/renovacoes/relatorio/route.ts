@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { sendWhatsAppDocument } from '@/lib/evolution'
-import { sendEmail } from '@/lib/email'
+import { sendEmail, buildAdminFrom } from '@/lib/email'
 import { gerarPdfRenovacoes } from '@/lib/pdf'
 import { getAdminWhatsApp } from '@/lib/whatsapp-admin'
 
@@ -59,13 +59,14 @@ export async function POST(req: NextRequest) {
     const base64 = pdfBuffer.toString('base64')
     const nomeArquivo = `renovacoes-${labelPeriodo.replace(/\//g, '-').replace(/\s/g, '')}.pdf`
 
+    const admin = await getAdminWhatsApp(supabase, session.user.id)
+
     if (canal === 'whatsapp') {
-      const { telefone, instance } = await getAdminWhatsApp(supabase, session.user.id)
-      if (!telefone) {
+      if (!admin.telefone) {
         return NextResponse.json({ error: 'Telefone WhatsApp não configurado para o administrador da corretora.' }, { status: 400 })
       }
       const caption = `🔄 *Relatório de Renovações — ${labelPeriodo}*\nTotal: ${apolices.length} apólice(s) para renovar.`
-      await sendWhatsAppDocument(telefone, base64, nomeArquivo, caption, instance)
+      await sendWhatsAppDocument(admin.telefone, base64, nomeArquivo, caption, admin.instance)
       return NextResponse.json({ success: true, canal: 'whatsapp', total: apolices.length })
     }
 
@@ -74,10 +75,13 @@ export async function POST(req: NextRequest) {
       if (!destinatario) {
         return NextResponse.json({ error: 'Informe um e-mail de destino.' }, { status: 400 })
       }
+      const adminFrom = buildAdminFrom(admin.nome, admin.email)
       await sendEmail({
         to: destinatario,
         subject: `Relatório de Renovações — ${labelPeriodo}`,
         html: `<p>Olá,</p><p>Segue em anexo o relatório de apólices a renovar no período de <strong>${labelPeriodo}</strong>.</p><p>Total: ${apolices.length} apólice(s).</p><p>SeguroPro</p>`,
+        from: adminFrom ?? undefined,
+        replyTo: admin.email ?? undefined,
         attachmentBase64: base64,
         attachmentFilename: nomeArquivo,
       })

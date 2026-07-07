@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { sendWhatsAppDocument } from '@/lib/evolution'
-import { sendEmail } from '@/lib/email'
+import { sendEmail, buildAdminFrom } from '@/lib/email'
 import { gerarPdfConciliacao } from '@/lib/pdf'
 import { formatCpfCnpj } from '@/lib/utils'
 import { getAdminWhatsApp } from '@/lib/whatsapp-admin'
@@ -69,17 +69,18 @@ export async function POST(req: NextRequest) {
   }))
 
   try {
+    const admin = await getAdminWhatsApp(supabase, session.user.id)
+
     const pdfBuffer = await gerarPdfConciliacao(apolicesParaPdf, labelPeriodo)
     const base64 = pdfBuffer.toString('base64')
     const nomeArquivo = `conciliacao-${labelPeriodo.replace(/\//g, '-').replace(/\s/g, '')}.pdf`
 
     if (canal === 'whatsapp') {
-      const { telefone, instance } = await getAdminWhatsApp(supabase, session.user.id)
-      if (!telefone) {
+      if (!admin.telefone) {
         return NextResponse.json({ error: 'Telefone WhatsApp não configurado para o administrador da corretora.' }, { status: 400 })
       }
       const caption = `📊 *Relatório de Conciliação — ${labelPeriodo}*\nTotal: ${apolices.length} apólice(s).`
-      await sendWhatsAppDocument(telefone, base64, nomeArquivo, caption, instance)
+      await sendWhatsAppDocument(admin.telefone, base64, nomeArquivo, caption, admin.instance)
       return NextResponse.json({ success: true, canal: 'whatsapp', total: apolices.length })
     }
 
@@ -88,10 +89,13 @@ export async function POST(req: NextRequest) {
       if (!destinatario) {
         return NextResponse.json({ error: 'Informe um e-mail de destino.' }, { status: 400 })
       }
+      const adminFrom = buildAdminFrom(admin.nome, admin.email)
       await sendEmail({
         to: destinatario,
         subject: `Relatório de Conciliação — ${labelPeriodo}`,
         html: `<p>Olá,</p><p>Segue em anexo o relatório de conciliação de comissões com emissão no período de <strong>${labelPeriodo}</strong>.</p><p>Total: ${apolices.length} apólice(s).</p><p>SeguroPro</p>`,
+        from: adminFrom ?? undefined,
+        replyTo: admin.email ?? undefined,
         attachmentBase64: base64,
         attachmentFilename: nomeArquivo,
       })
