@@ -1,6 +1,11 @@
 export function buildAdminFrom(nome: string | null, email: string | null): string | null {
-  if (!email) return null
-  return nome ? `${nome} <${email}>` : email
+  const configuredFrom = process.env.RESEND_FROM_EMAIL
+  if (!configuredFrom) return null
+  // Keep the verified sending domain but show the admin's name as display name
+  const verifiedEmail = configuredFrom.match(/<(.+)>/)?.[1] ?? configuredFrom
+  if (nome) return `${nome} <${verifiedEmail}>`
+  if (email) return `${email.split('@')[0]} <${verifiedEmail}>`
+  return null
 }
 
 interface EnviarEmailParams {
