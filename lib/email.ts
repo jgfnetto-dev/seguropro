@@ -1,13 +1,6 @@
-// Builds a "Nome <email>" sender string using the admin's name and the verified domain.
-// Keeps the domain from RESEND_FROM_EMAIL (which Resend has verified) but shows the admin's name.
-// Also sets reply_to so replies go directly to the admin.
 export function buildAdminFrom(nome: string | null, email: string | null): string | null {
-  const configuredFrom = process.env.RESEND_FROM_EMAIL
-  if (!configuredFrom) return null
-  const verifiedEmail = configuredFrom.match(/<(.+)>/)?.[1] ?? configuredFrom
-  if (nome) return `${nome} <${verifiedEmail}>`
-  if (email) return `${email.split('@')[0]} <${verifiedEmail}>`
-  return null
+  if (!email) return null
+  return nome ? `${nome} <${email}>` : email
 }
 
 interface EnviarEmailParams {
