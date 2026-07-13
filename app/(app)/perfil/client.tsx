@@ -180,6 +180,7 @@ export function PerfilClient({ usuario, stats }: Props) {
   const isAdmin = usuario?.adm === 'S'
   const [nome, setNome] = useState(usuario?.nome ?? '')
   const [telefone, setTelefone] = useState(usuario?.telefone_whatsapp ?? '')
+  const [telefoneNotificacao, setTelefoneNotificacao] = useState(usuario?.telefone_notificacao ?? '')
   const [loading, setLoading] = useState(false)
 
   async function handleSave(e: React.FormEvent) {
@@ -188,7 +189,7 @@ export function PerfilClient({ usuario, stats }: Props) {
     const res = await fetch('/api/usuarios', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, telefone_whatsapp: telefone }),
+      body: JSON.stringify({ nome, telefone_whatsapp: telefone, telefone_notificacao: telefoneNotificacao || null }),
     })
     setLoading(false)
     if (res.ok) showToast('Alterações salvas!', 'success')
@@ -239,10 +240,23 @@ export function PerfilClient({ usuario, stats }: Props) {
                   <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(11) 99999-9999" />
                 </div>
                 {isAdmin && (
-                  <div className="space-y-2">
-                    <Label>Conexão WhatsApp para envios</Label>
-                    <WhatsAppConnectCard />
-                  </div>
+                  <>
+                    <div>
+                      <Label>Número para notificações de leads</Label>
+                      <Input
+                        value={telefoneNotificacao}
+                        onChange={(e) => setTelefoneNotificacao(e.target.value)}
+                        placeholder="(11) 99999-9999 — pode ser diferente do número acima"
+                      />
+                      <p className="text-xs text-on-surface-variant mt-1">
+                        Este número receberá o aviso de novo lead via WhatsApp. Deve ser diferente do número conectado à instância.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Conexão WhatsApp para envios</Label>
+                      <WhatsAppConnectCard />
+                    </div>
+                  </>
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Salvando...' : '💾 Salvar Alterações'}

@@ -20,7 +20,7 @@ export async function POST() {
   const service = createServiceClient()
   const { data: admin, error: adminError } = await service
     .from('usuarios')
-    .select('telefone_whatsapp, nome')
+    .select('telefone_notificacao, nome')
     .eq('corretora_id', usuario.corretora_id)
     .eq('adm', 'S')
     .single()
@@ -31,9 +31,9 @@ export async function POST() {
   if (!admin) {
     return NextResponse.json({ error: 'Nenhum administrador encontrado para esta corretora.' }, { status: 404 })
   }
-  if (!admin.telefone_whatsapp) {
+  if (!admin.telefone_notificacao) {
     return NextResponse.json({
-      error: 'WhatsApp não configurado. Acesse Perfil e preencha o campo "WhatsApp / Telefone".',
+      error: 'Número de notificações não configurado. Acesse Perfil e preencha o campo "Número para notificações de leads".',
     }, { status: 400 })
   }
 
@@ -44,11 +44,11 @@ export async function POST() {
 
   try {
     await sendWhatsAppMessage(
-      admin.telefone_whatsapp,
+      admin.telefone_notificacao,
       `✅ *Teste de notificação — SeguroPro*\n\nOlá! Este é um teste para confirmar que as notificações de novos leads estão funcionando corretamente.`,
       instance,
     )
-    return NextResponse.json({ success: true, telefone: admin.telefone_whatsapp, instance })
+    return NextResponse.json({ success: true, telefone: admin.telefone_notificacao, instance })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: `Falha ao enviar: ${msg}` }, { status: 500 })

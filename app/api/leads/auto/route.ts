@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
   try {
     const { data: admin, error: adminError } = await service
       .from('usuarios')
-      .select('telefone_whatsapp')
+      .select('telefone_notificacao')
       .eq('corretora_id', corretoraId)
       .eq('adm', 'S')
       .single()
@@ -98,8 +98,8 @@ export async function POST(req: NextRequest) {
       waDebug = `erro ao buscar admin: ${adminError.message}`
     } else if (!admin) {
       waDebug = 'admin não encontrado'
-    } else if (!admin.telefone_whatsapp) {
-      waDebug = 'admin sem telefone_whatsapp'
+    } else if (!admin.telefone_notificacao) {
+      waDebug = 'admin sem telefone_notificacao configurado no perfil'
     } else {
       const instance = process.env.EVOLUTION_INSTANCE
       if (!instance) {
@@ -112,8 +112,8 @@ export async function POST(req: NextRequest) {
           `📱 Celular: ${fields.celular}\n` +
           `📧 E-mail: ${fields.email || 'Não informado'}` +
           placa
-        await sendWhatsAppMessage(admin.telefone_whatsapp, texto, instance)
-        waDebug = `enviado para ${admin.telefone_whatsapp} via ${instance}`
+        await sendWhatsAppMessage(admin.telefone_notificacao, texto, instance)
+        waDebug = `enviado para ${admin.telefone_notificacao} via ${instance}`
       }
     }
   } catch (waError) {

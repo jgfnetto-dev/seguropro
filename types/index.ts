@@ -10,6 +10,7 @@ export interface Usuario {
   email: string
   nome: string
   telefone_whatsapp?: string
+  telefone_notificacao?: string
   whatsapp_instance?: string
   adm?: 'S' | 'N'
   senha_deve_ser_alterada?: boolean
