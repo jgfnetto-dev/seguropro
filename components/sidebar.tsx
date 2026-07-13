@@ -1,7 +1,8 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks } from 'lucide-react'
+import { useState } from 'react'
+import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, ChevronDown, ContactRound } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { cn } from '@/lib/utils'
 import { APP_VERSION } from '@/lib/version'
@@ -18,9 +19,14 @@ const navLinks = [
   { href: '/usuarios', label: 'Usuários', icon: UserCog },
 ]
 
+const leadsSubItems = [
+  { href: '/leads/auto', label: 'Automóvel', icon: Car },
+]
+
 export function Sidebar({ userName }: { userName?: string }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [leadsOpen, setLeadsOpen] = useState(() => !!pathname?.startsWith('/leads'))
 
   async function handleLogout() {
     const supabase = getSupabaseBrowser()
@@ -28,6 +34,8 @@ export function Sidebar({ userName }: { userName?: string }) {
     router.push('/auth/login')
     router.refresh()
   }
+
+  const leadsActive = pathname?.startsWith('/leads')
 
   return (
     <>
@@ -57,6 +65,45 @@ export function Sidebar({ userName }: { userName?: string }) {
               </Link>
             )
           })}
+
+          {/* Novos Leads group */}
+          <div>
+            <button
+              onClick={() => setLeadsOpen((o) => !o)}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2 rounded text-body-sm font-medium w-full transition-colors',
+                leadsActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+              )}
+            >
+              <ContactRound className="w-4 h-4" />
+              Novos Leads
+              <ChevronDown className={cn('w-3 h-3 ml-auto transition-transform duration-200', leadsOpen && 'rotate-180')} />
+            </button>
+            {leadsOpen && (
+              <div className="mt-1 space-y-0.5">
+                {leadsSubItems.map(({ href, label, icon: Icon }) => {
+                  const active = pathname === href
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={cn(
+                        'flex items-center gap-3 pl-9 pr-3 py-2 rounded text-body-sm font-medium transition-colors',
+                        active
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                      )}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {label}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="border-t border-outline-variant/30 p-3 space-y-1 shrink-0">

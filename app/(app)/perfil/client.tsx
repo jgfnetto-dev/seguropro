@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Lock, LogOut, User, Smartphone, CheckCircle, XCircle, Loader2, Link2, Copy, Car } from 'lucide-react'
+import { Shield, Lock, LogOut, User, Smartphone, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -173,57 +173,6 @@ function WhatsAppConnectCard() {
   )
 }
 
-function LeadLinkCard({ corretoraId }: { corretoraId: string }) {
-  const [copied, setCopied] = useState(false)
-  const link = typeof window !== 'undefined'
-    ? `${window.location.origin}/cotacao/auto/${corretoraId}`
-    : `/cotacao/auto/${corretoraId}`
-
-  function handleCopy() {
-    navigator.clipboard.writeText(link).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  return (
-    <Card>
-      <CardContent className="pt-5 space-y-3">
-        <div className="flex items-center gap-2 mb-1">
-          <Car className="w-4 h-4 text-secondary" />
-          <h3 className="text-h3 text-on-surface">Links de Cotação</h3>
-        </div>
-        <div className="space-y-2">
-          <p className="text-body-sm text-on-surface-variant">
-            Envie este link para seus clientes preencherem os dados para cotação de automóvel.
-          </p>
-          <div className="flex items-center gap-2 bg-surface-container rounded-lg px-3 py-2 border border-outline-variant/30">
-            <Link2 className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
-            <span className="text-xs text-on-surface-variant truncate flex-1 font-mono">
-              /cotacao/auto/{corretoraId.slice(0, 8)}…
-            </span>
-          </div>
-          <button
-            onClick={handleCopy}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-secondary/40 text-secondary text-body-sm font-medium hover:bg-secondary/5 transition-colors"
-          >
-            {copied ? (
-              <>
-                <CheckCircle className="w-4 h-4" />
-                Link copiado!
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                Copiar link de cotação auto
-              </>
-            )}
-          </button>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 export function PerfilClient({ usuario, stats }: Props) {
   const router = useRouter()
@@ -325,10 +274,6 @@ export function PerfilClient({ usuario, stats }: Props) {
                 </button>
               </CardContent>
             </Card>
-
-            {isAdmin && usuario?.corretora_id && (
-              <LeadLinkCard corretoraId={usuario.corretora_id} />
-            )}
 
             <Card>
               <CardContent className="pt-5">
