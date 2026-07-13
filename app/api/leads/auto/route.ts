@@ -55,28 +55,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erro ao salvar dados. Tente novamente.' }, { status: 500 })
   }
 
-  // Notifica o admin da corretora via WhatsApp (best-effort, não bloqueia a resposta)
-  const { data: admin } = await service
-    .from('usuarios')
-    .select('telefone_whatsapp, whatsapp_instance')
-    .eq('corretora_id', corretoraId)
-    .eq('adm', 'S')
-    .single()
+  // Notifica o admin da corretora via WhatsApp (best-effort)
+  try {
+    const { data: admin } = await service
+      .from('usuarios')
+      .select('telefone_whatsapp, whatsapp_instance')
+      .eq('corretora_id', corretoraId)
+      .eq('adm', 'S')
+      .single()
 
-  if (admin?.telefone_whatsapp) {
-    const placa = fields.placaChassi ? `\n🚗 Placa/Chassi: ${fields.placaChassi}` : ''
-    const texto =
-      `🔔 *Novo lead de cotação — Automóvel*\n\n` +
-      `👤 Nome: ${fields.nome}\n` +
-      `📱 Celular: ${fields.celular}\n` +
-      `📧 E-mail: ${fields.email || 'Não informado'}` +
-      placa
-
-    sendWhatsAppMessage(
-      admin.telefone_whatsapp,
-      texto,
-      admin.whatsapp_instance ?? process.env.EVOLUTION_INSTANCE,
-    ).catch(() => { /* silencioso — não falha o lead */ })
+    if (!admin) {
+      console.warn('[leads/auto] Admin não encontrado para corretora:', corretoraId)
+    } else if (!admin.telefone_whatsapp) {
+      console.warn('[leads/auto] Admin sem telefone_whatsapp configurado, corretora:', corretoraId)
+    } else {
+      const instance = admin.whatsapp_instance ?? process.env.EVOLUTION_INSTANCE
+      if (!instance) {
+        console.warn('[leads/auto] Nenhuma instância WhatsApp configurada para corretora:', corretoraId)
+      } else {
+        const placa = fields.placaChassi ? `\n🚗 Placa/Chassi: ${fields.placaChassi}` : ''
+        const texto =
+          `🔔 *Novo lead de cotação — Automóvel*\n\n` +
+          `👤 Nome: ${fields.nome}\n` +
+          `📱 Celular: ${fields.celular}\n` +
+          `📧 E-mail: ${fields.email || 'Não informado'}` +
+          placa
+        await sendWhatsAppMessage(admin.telefone_whatsapp, texto, instance)
+      }
+    }
+  } catch (waError) {
+    console.error('[leads/auto] Erro ao enviar notificação WhatsApp:', waError)
   }
 
   return NextResponse.json({ success: true })
