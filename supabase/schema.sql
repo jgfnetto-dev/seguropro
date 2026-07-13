@@ -190,6 +190,38 @@ DROP POLICY IF EXISTS "tarefas_corretora" ON tarefas;
 CREATE POLICY "tarefas_corretora" ON tarefas FOR ALL
   USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
 
+-- Leads de cotação de automóvel (enviados por clientes via link público)
+CREATE TABLE IF NOT EXISTS leads_auto (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  corretora_id uuid REFERENCES corretoras(id) NOT NULL,
+  nome text NOT NULL,
+  cpf text NOT NULL,
+  email text,
+  celular text NOT NULL,
+  placa_chassi text,
+  cep_pernoite text,
+  endereco_completo text,
+  estado_civil text,
+  tipo_residencia text,
+  tem_garagem text,
+  tipo_portao text,
+  usa_trabalho text,
+  estacionamento_trabalho text,
+  usa_estudo text,
+  estacionamento_estudo text,
+  uso_veiculo text,
+  residente_18_25 text,
+  residente_usa_veiculo text,
+  km_mensal text,
+  criado_em timestamptz DEFAULT now()
+);
+
+ALTER TABLE leads_auto ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "leads_auto_corretora" ON leads_auto;
+CREATE POLICY "leads_auto_corretora" ON leads_auto FOR ALL
+  USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
+
 -- Storage bucket (run in Supabase dashboard or via API)
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('apolices-pdf', 'apolices-pdf', true);
 

@@ -3,9 +3,11 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
-  // Endpoints de cron são chamados por serviços externos sem sessão de navegador;
-  // a autorização deles é feita via CRON_SECRET dentro da própria rota.
-  if (request.nextUrl.pathname.startsWith('/api/cron')) {
+  // Endpoints de cron e leads são chamados sem sessão de navegador.
+  if (
+    request.nextUrl.pathname.startsWith('/api/cron') ||
+    request.nextUrl.pathname.startsWith('/api/leads')
+  ) {
     return NextResponse.next()
   }
 
@@ -42,7 +44,7 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  const publicPaths = ['/auth/login']
+  const publicPaths = ['/auth/login', '/cotacao/']
   const isPublic = publicPaths.some((p) => pathname.startsWith(p))
 
   if (!session && !isPublic) {
