@@ -1,29 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createServerSupabaseClient, createServiceClient } from '@/lib/supabase'
 
 const API_URL = process.env.EVOLUTION_API_URL!
-const API_KEY = process.env.EVOLUTION_API_KEY!
-const DEFAULT_INSTANCE = process.env.EVOLUTION_INSTANCE!
+const INSTANCE_KEY = process.env.EVOLUTION_API_KEY!   // instance-level key (send messages)
+const ADMIN_KEY = process.env.EVOLUTION_ADMIN_KEY!     // global key (create/delete instances)
 
-async function evoFetch(path: string, init?: RequestInit) {
+function instanceNameFor(corretoraId: string) {
+  return `sp-${corretoraId.replace(/-/g, '').slice(0, 12)}`
+}
+
+async function evoFetch(path: string, init?: RequestInit, useAdminKey = false) {
   return fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      apikey: API_KEY,
+      apikey: useAdminKey ? ADMIN_KEY : INSTANCE_KEY,
       ...(init?.headers as Record<string, string> ?? {}),
     },
   })
 }
 
-async function getInstanceState(name: string) {
-  const res = await evoFetch(`/instance/connect/${name}`)
-  if (!res.ok) return { state: 'disconnected' as const }
+async function getInstanceState(name: string): Promise<
+  | { state: 'connected' }
+  | { state: 'qr'; qrcode: string }
+  | { state: 'disconnected' }
+  | { state: 'not_found' }
+> {
+  // Use admin key so we can query any instance, not just seguroprowhatsapp
+  const res = await evoFetch(`/instance/connect/${name}`, undefined, true)
+  if (!res.ok) return { state: 'not_found' }
   const data = await res.json()
-  if (data.instance?.state === 'open') return { state: 'connected' as const }
+  if (data.instance?.state === 'open') return { state: 'connected' }
   const qr = data.qrcode?.base64 ?? data.base64 ?? null
-  if (qr) return { state: 'qr' as const, qrcode: qr as string }
-  return { state: 'disconnected' as const }
+  if (qr) return { state: 'qr', qrcode: qr }
+  return { state: 'disconnected' }
 }
 
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
@@ -31,7 +41,12 @@ async function requireAdmin(supabase: Awaited<ReturnType<typeof createServerSupa
   if (!session) return null
   const { data: u } = await supabase.from('usuarios').select('corretora_id, adm').eq('id', session.user.id).single()
   if (!u?.corretora_id || u.adm !== 'S') return null
-  return { userId: session.user.id }
+  return { userId: session.user.id, corretoraId: u.corretora_id as string }
+}
+
+async function saveInstance(userId: string, instanceName: string) {
+  const service = createServiceClient()
+  await service.from('usuarios').update({ whatsapp_instance: instanceName }).eq('id', userId)
 }
 
 export async function GET() {
@@ -39,16 +54,17 @@ export async function GET() {
   const admin = await requireAdmin(supabase)
   if (!admin) return NextResponse.json({ error: 'Apenas administradores podem gerenciar o WhatsApp.' }, { status: 403 })
 
-  const result = await getInstanceState(DEFAULT_INSTANCE)
+  const name = instanceNameFor(admin.corretoraId)
+  const result = await getInstanceState(name)
 
   if (result.state === 'connected') {
-    await supabase.from('usuarios').update({ whatsapp_instance: DEFAULT_INSTANCE }).eq('id', admin.userId)
-    return NextResponse.json({ status: 'connected' })
+    await saveInstance(admin.userId, name)
+    return NextResponse.json({ status: 'connected', instanceName: name })
   }
   if (result.state === 'qr') {
-    return NextResponse.json({ status: 'qr', qrcode: result.qrcode })
+    return NextResponse.json({ status: 'qr', qrcode: result.qrcode, instanceName: name })
   }
-  return NextResponse.json({ status: 'disconnected' })
+  return NextResponse.json({ status: 'none', instanceName: name })
 }
 
 export async function POST(req: NextRequest) {
@@ -58,22 +74,39 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}))
   const reconectar = body.action === 'reconectar'
+  const name = instanceNameFor(admin.corretoraId)
 
   if (reconectar) {
-    // Disconnect current session so the admin can scan with their own phone
-    await evoFetch(`/instance/logout/${DEFAULT_INSTANCE}`, { method: 'DELETE' })
+    await evoFetch(`/instance/logout/${name}`, { method: 'DELETE' }, true)
   }
 
-  const result = await getInstanceState(DEFAULT_INSTANCE)
+  const result = await getInstanceState(name)
 
   if (result.state === 'connected') {
-    await supabase.from('usuarios').update({ whatsapp_instance: DEFAULT_INSTANCE }).eq('id', admin.userId)
-    return NextResponse.json({ status: 'connected' })
-  }
-  if (result.state === 'qr') {
-    await supabase.from('usuarios').update({ whatsapp_instance: DEFAULT_INSTANCE }).eq('id', admin.userId)
-    return NextResponse.json({ status: 'qr', qrcode: result.qrcode })
+    await saveInstance(admin.userId, name)
+    return NextResponse.json({ status: 'connected', instanceName: name })
   }
 
-  return NextResponse.json({ error: 'Não foi possível obter o QR code. Verifique o servidor Evolution API.' }, { status: 500 })
+  if (result.state === 'qr') {
+    await saveInstance(admin.userId, name)
+    return NextResponse.json({ status: 'qr', qrcode: result.qrcode, instanceName: name })
+  }
+
+  // Instance doesn't exist — create it with the global admin key
+  const createRes = await evoFetch('/instance/create', {
+    method: 'POST',
+    body: JSON.stringify({ instanceName: name, qrcode: true, integration: 'WHATSAPP-BAILEYS' }),
+  }, true)
+
+  if (!createRes.ok) {
+    const err = await createRes.text()
+    return NextResponse.json({ error: `Erro ao criar instância: ${err}` }, { status: 500 })
+  }
+
+  const createData = await createRes.json()
+  const qrBase64 = createData.qrcode?.base64 ?? null
+
+  await saveInstance(admin.userId, name)
+
+  return NextResponse.json({ status: qrBase64 ? 'qr' : 'disconnected', qrcode: qrBase64, instanceName: name })
 }
