@@ -138,6 +138,7 @@ const inputCls = "w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm t
 export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
   const [form, setForm] = useState<FormData>(INITIAL)
   const [submitted, setSubmitted] = useState(false)
+  const [waDebug, setWaDebug] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -155,6 +156,7 @@ export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Erro ao enviar.')
+      setWaDebug(data._wa ?? null)
       setSubmitted(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao enviar. Tente novamente.')
@@ -175,6 +177,11 @@ export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
             Recebemos suas informações. Em breve a corretora <strong>{nomeCorretora}</strong> entrará
             em contato com a sua cotação de seguro automóvel.
           </p>
+          {waDebug && (
+            <p className="text-xs text-gray-400 bg-gray-50 rounded-lg px-3 py-2 text-left break-all">
+              wa: {waDebug}
+            </p>
+          )}
         </div>
       </div>
     )
