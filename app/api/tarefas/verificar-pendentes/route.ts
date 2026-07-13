@@ -33,5 +33,6 @@ export async function POST(_req: NextRequest) {
   }
 
   const enviadas = await enviarLembretesPendentes(supabase, pendentes, telefoneDestino)
-  return NextResponse.json({ sent: enviadas })
+  console.log('[verificar-pendentes] destino:', telefoneDestino, '| notificacao:', usuario?.telefone_notificacao, '| whatsapp:', usuario?.telefone_whatsapp, '| enviadas:', enviadas)
+  return NextResponse.json({ sent: enviadas, _destino: telefoneDestino })
 }

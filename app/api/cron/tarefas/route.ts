@@ -8,7 +8,8 @@ function autorizado(req: NextRequest) {
   if (!secret) return false
   const fromHeader = req.headers.get('x-cron-secret')
   const fromQuery = req.nextUrl.searchParams.get('secret')
-  return fromHeader === secret || fromQuery === secret
+  const fromBearer = req.headers.get('authorization')?.replace('Bearer ', '')
+  return fromHeader === secret || fromQuery === secret || fromBearer === secret
 }
 
 export async function GET(req: NextRequest) {
