@@ -1,11 +1,15 @@
 function normalizePhoneNumber(value: string) {
   const digits = value.replace(/\D/g, '')
-  // Assume Brazil: if it doesn't already start with the country code (55)
-  // and has the typical length of a national number (10-11 digits), prepend it.
   if (!digits.startsWith('55') && (digits.length === 10 || digits.length === 11)) {
     return `55${digits}`
   }
   return digits
+}
+
+// Use global admin key when available — it works for all instances.
+// Fall back to instance-level key for backwards compatibility.
+function apiKey() {
+  return process.env.EVOLUTION_ADMIN_KEY ?? process.env.EVOLUTION_API_KEY!
 }
 
 export async function sendWhatsAppMessage(to: string, text: string, instance?: string | null) {
@@ -15,10 +19,7 @@ export async function sendWhatsAppMessage(to: string, text: string, instance?: s
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: process.env.EVOLUTION_API_KEY!,
-    },
+    headers: { 'Content-Type': 'application/json', apikey: apiKey() },
     body: JSON.stringify({ number, text }),
   })
 
@@ -37,10 +38,7 @@ export async function sendWhatsAppDocument(to: string, base64: string, fileName:
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: process.env.EVOLUTION_API_KEY!,
-    },
+    headers: { 'Content-Type': 'application/json', apikey: apiKey() },
     body: JSON.stringify({
       number,
       mediatype: 'document',
