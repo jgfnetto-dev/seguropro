@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Car, Copy, CheckCircle, Link2, ChevronDown, ChevronUp, User, Phone, Mail, MapPin, Calendar, Trash2, Loader2, Send, XCircle } from 'lucide-react'
+import { Car, Copy, CheckCircle, Link2, ChevronDown, ChevronUp, User, Phone, Mail, MapPin, Calendar, Trash2, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface Lead {
@@ -180,31 +180,11 @@ function LeadCard({ lead, onDelete }: { lead: Lead; onDelete: (id: string) => vo
 export function LeadsAutoClient({ corretoraId, leads: initialLeads }: Props) {
   const [leads, setLeads] = useState(initialLeads)
   const [copied, setCopied] = useState(false)
-  const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
-  const [testMsg, setTestMsg] = useState('')
 
   function handleDelete(id: string) {
     setLeads((prev) => prev.filter((l) => l.id !== id))
   }
 
-  async function handleTestNotification() {
-    setTestStatus('loading')
-    setTestMsg('')
-    try {
-      const res = await fetch('/api/leads/auto/testar-notificacao', { method: 'POST' })
-      const data = await res.json()
-      if (res.ok) {
-        setTestStatus('ok')
-        setTestMsg(`Mensagem enviada para ${data.telefone} via instância ${data.instance}`)
-      } else {
-        setTestStatus('error')
-        setTestMsg(data.error ?? 'Erro desconhecido.')
-      }
-    } catch {
-      setTestStatus('error')
-      setTestMsg('Erro de rede.')
-    }
-  }
   const link = typeof window !== 'undefined'
     ? `${window.location.origin}/cotacao/auto/${corretoraId}`
     : `/cotacao/auto/${corretoraId}`
@@ -251,27 +231,7 @@ export function LeadsAutoClient({ corretoraId, leads: initialLeads }: Props) {
             >
               {copied ? <><CheckCircle className="w-4 h-4" />Link copiado!</> : <><Copy className="w-4 h-4" />Copiar link</>}
             </button>
-            <button
-              onClick={handleTestNotification}
-              disabled={testStatus === 'loading'}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-outline-variant/40 text-on-surface-variant text-body-sm font-medium hover:bg-surface-container transition-colors disabled:opacity-60"
-            >
-              {testStatus === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Testar notificação
-            </button>
           </div>
-          {testStatus === 'ok' && (
-            <div className="flex items-start gap-2 text-body-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              {testMsg}
-            </div>
-          )}
-          {testStatus === 'error' && (
-            <div className="flex items-start gap-2 text-body-sm text-error bg-error/5 border border-error/30 rounded-lg px-3 py-2">
-              <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              {testMsg}
-            </div>
-          )}
         </CardContent>
       </Card>
 
