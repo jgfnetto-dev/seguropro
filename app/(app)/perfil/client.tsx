@@ -242,7 +242,7 @@ export function PerfilClient({ usuario, stats }: Props) {
                 {isAdmin && (
                   <>
                     <div>
-                      <Label>Número para notificações de leads</Label>
+                      <Label>Numero para receber notificações via Whatsapp</Label>
                       <Input
                         value={telefoneNotificacao}
                         onChange={(e) => setTelefoneNotificacao(e.target.value)}
