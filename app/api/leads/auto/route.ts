@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
+import { sendWhatsAppMessage } from '@/lib/evolution'
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
@@ -52,6 +53,30 @@ export async function POST(req: NextRequest) {
   if (error) {
     console.error('leads_auto insert error:', error)
     return NextResponse.json({ error: 'Erro ao salvar dados. Tente novamente.' }, { status: 500 })
+  }
+
+  // Notifica o admin da corretora via WhatsApp (best-effort, não bloqueia a resposta)
+  const { data: admin } = await service
+    .from('usuarios')
+    .select('telefone_whatsapp, whatsapp_instance')
+    .eq('corretora_id', corretoraId)
+    .eq('adm', 'S')
+    .single()
+
+  if (admin?.telefone_whatsapp) {
+    const placa = fields.placaChassi ? `\n🚗 Placa/Chassi: ${fields.placaChassi}` : ''
+    const texto =
+      `🔔 *Novo lead de cotação — Automóvel*\n\n` +
+      `👤 Nome: ${fields.nome}\n` +
+      `📱 Celular: ${fields.celular}\n` +
+      `📧 E-mail: ${fields.email || 'Não informado'}` +
+      placa
+
+    sendWhatsAppMessage(
+      admin.telefone_whatsapp,
+      texto,
+      admin.whatsapp_instance ?? process.env.EVOLUTION_INSTANCE,
+    ).catch(() => { /* silencioso — não falha o lead */ })
   }
 
   return NextResponse.json({ success: true })
