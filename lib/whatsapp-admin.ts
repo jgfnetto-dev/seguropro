@@ -26,14 +26,14 @@ export async function getAdminWhatsApp(
   const service = createServiceClient()
   const { data: admin } = await service
     .from('usuarios')
-    .select('id, telefone_whatsapp, email, nome, whatsapp_instance')
+    .select('id, telefone_whatsapp, telefone_notificacao, email, nome, whatsapp_instance')
     .eq('corretora_id', usuario.corretora_id)
     .eq('adm', 'S')
     .single()
 
   return {
-    telefone: admin?.telefone_whatsapp ?? null,
-    // Use the admin's specific instance, fall back to env var (existing shared instance)
+    // telefone_notificacao is a separate number that avoids the self-message problem
+    telefone: admin?.telefone_notificacao ?? admin?.telefone_whatsapp ?? null,
     instance: admin?.whatsapp_instance ?? process.env.EVOLUTION_INSTANCE ?? null,
     email: admin?.email ?? null,
     nome: admin?.nome ?? null,
