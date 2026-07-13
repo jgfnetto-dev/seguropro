@@ -10,11 +10,12 @@ export async function POST(_req: NextRequest) {
 
   const { data: usuario } = await supabase
     .from('usuarios')
-    .select('id, telefone_whatsapp')
+    .select('id, telefone_whatsapp, telefone_notificacao')
     .eq('id', session.user.id)
     .single()
 
-  if (!usuario?.telefone_whatsapp) {
+  const telefoneDestino = usuario?.telefone_notificacao ?? usuario?.telefone_whatsapp
+  if (!telefoneDestino) {
     return NextResponse.json({ sent: 0, reason: 'Telefone não configurado no perfil.' })
   }
 
@@ -31,6 +32,6 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ sent: 0 })
   }
 
-  const enviadas = await enviarLembretesPendentes(supabase, pendentes, usuario.telefone_whatsapp)
+  const enviadas = await enviarLembretesPendentes(supabase, pendentes, telefoneDestino)
   return NextResponse.json({ sent: enviadas })
 }

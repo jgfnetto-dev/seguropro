@@ -28,7 +28,7 @@ async function handle(req: NextRequest) {
 
   const { data: pendentes, error } = await supabase
     .from('tarefas')
-    .select('id, data, hora, tarefa, usuario_id, usuarios(telefone_whatsapp)')
+    .select('id, data, hora, tarefa, usuario_id, usuarios(telefone_whatsapp, telefone_notificacao)')
     .eq('whatsapp_enviado', false)
     .or(`data.lt.${hoje},and(data.eq.${hoje},hora.lte.${horaAtual})`)
 
@@ -36,8 +36,8 @@ async function handle(req: NextRequest) {
   if (!pendentes?.length) return NextResponse.json({ sent: 0 })
 
   const porUsuario = new Map<string, { telefone: string; tarefas: { id: string; data: string; hora: string; tarefa: string }[] }>()
-  for (const t of pendentes as unknown as { id: string; data: string; hora: string; tarefa: string; usuario_id: string; usuarios: { telefone_whatsapp: string | null } | null }[]) {
-    const telefone = t.usuarios?.telefone_whatsapp
+  for (const t of pendentes as unknown as { id: string; data: string; hora: string; tarefa: string; usuario_id: string; usuarios: { telefone_whatsapp: string | null; telefone_notificacao: string | null } | null }[]) {
+    const telefone = t.usuarios?.telefone_notificacao ?? t.usuarios?.telefone_whatsapp
     if (!telefone) continue
     const grupo = porUsuario.get(t.usuario_id) ?? { telefone, tarefas: [] }
     grupo.tarefas.push({ id: t.id, data: t.data, hora: t.hora, tarefa: t.tarefa })
