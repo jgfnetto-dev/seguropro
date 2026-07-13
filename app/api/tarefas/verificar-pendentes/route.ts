@@ -14,7 +14,8 @@ export async function POST(_req: NextRequest) {
     .eq('id', session.user.id)
     .single()
 
-  const telefoneDestino = usuario?.telefone_notificacao ?? usuario?.telefone_whatsapp
+  if (!usuario) return NextResponse.json({ sent: 0, reason: 'Usuário não encontrado.' })
+  const telefoneDestino = usuario.telefone_notificacao ?? usuario.telefone_whatsapp
   if (!telefoneDestino) {
     return NextResponse.json({ sent: 0, reason: 'Telefone não configurado no perfil.' })
   }
