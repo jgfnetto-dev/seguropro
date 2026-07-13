@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { sendWhatsAppDocument } from '@/lib/evolution'
+import { getAdminWhatsApp } from '@/lib/whatsapp-admin'
 
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient()
@@ -32,8 +33,9 @@ export async function POST(req: NextRequest) {
     const fileName = `apolice-${apolice.numero_apolice}.pdf`
     const nomeCliente = apolice.cliente?.segurado ?? 'Cliente'
 
+    const { instance } = await getAdminWhatsApp(supabase, session.user.id)
     const caption = `Olá, ${nomeCliente}! 😊\n\nMuito obrigado pela confiança! Segue em anexo a sua apólice nº ${apolice.numero_apolice}.\n\nQualquer dúvida, estamos à disposição!`
-    await sendWhatsAppDocument(telefone, base64, fileName, caption)
+    await sendWhatsAppDocument(telefone, base64, fileName, caption, instance)
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
