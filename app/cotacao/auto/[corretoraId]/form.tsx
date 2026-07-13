@@ -303,10 +303,11 @@ export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
               { value: 'N', label: 'Não' },
             ]}
             value={form.temGaragem}
-            onChange={(v) => {
-              set('temGaragem')(v)
-              if (v === 'N') set('tipoPortao')('')
-            }}
+            onChange={(v) => setForm(prev => ({
+              ...prev,
+              temGaragem: v,
+              tipoPortao: v === 'N' ? '' : prev.tipoPortao,
+            }))}
             inline
           />
           {form.temGaragem === 'S' && (
@@ -334,10 +335,11 @@ export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
               { value: 'N', label: 'Não' },
             ]}
             value={form.usaTrabalho}
-            onChange={(v) => {
-              set('usaTrabalho')(v)
-              if (v === 'N') set('estacionamentoTrabalho')('')
-            }}
+            onChange={(v) => setForm(prev => ({
+              ...prev,
+              usaTrabalho: v,
+              estacionamentoTrabalho: v === 'N' ? '' : prev.estacionamentoTrabalho,
+            }))}
             inline
           />
           {form.usaTrabalho === 'S' && (
@@ -361,10 +363,11 @@ export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
               { value: 'N', label: 'Não' },
             ]}
             value={form.usaEstudo}
-            onChange={(v) => {
-              set('usaEstudo')(v)
-              if (v === 'N') set('estacionamentoEstudo')('')
-            }}
+            onChange={(v) => setForm(prev => ({
+              ...prev,
+              usaEstudo: v,
+              estacionamentoEstudo: v === 'N' ? '' : prev.estacionamentoEstudo,
+            }))}
             inline
           />
           {form.usaEstudo === 'S' && (
@@ -416,10 +419,11 @@ export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
               { value: 'N', label: 'Não' },
             ]}
             value={form.residente1825}
-            onChange={(v) => {
-              set('residente1825')(v)
-              if (v === 'N') set('residente1825UsaVeiculo')('')
-            }}
+            onChange={(v) => setForm(prev => ({
+              ...prev,
+              residente1825: v,
+              residente1825UsaVeiculo: v === 'N' ? '' : prev.residente1825UsaVeiculo,
+            }))}
             inline
           />
           {form.residente1825 === 'S' && (
