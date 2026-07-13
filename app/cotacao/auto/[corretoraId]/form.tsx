@@ -25,6 +25,9 @@ type FormData = {
   usaEstudo: string
   estacionamentoEstudo: string
   usoVeiculo: string
+  condutorESegurado: string
+  condutorCpf: string
+  condutorNascimento: string
   residente1825: string
   residente1825UsaVeiculo: string
   kmMensal: string
@@ -34,8 +37,9 @@ const INITIAL: FormData = {
   nome: '', cpf: '', email: '', celular: '', placaChassi: '',
   cepPernoite: '', enderecoCompleto: '', estadoCivil: '', tipoResidencia: '',
   temGaragem: '', tipoPortao: '', usaTrabalho: '', estacionamentoTrabalho: '',
-  usaEstudo: '', estacionamentoEstudo: '', usoVeiculo: '', residente1825: '',
-  residente1825UsaVeiculo: '', kmMensal: '',
+  usaEstudo: '', estacionamentoEstudo: '', usoVeiculo: '',
+  condutorESegurado: '', condutorCpf: '', condutorNascimento: '',
+  residente1825: '', residente1825UsaVeiculo: '', kmMensal: '',
 }
 
 function field(form: FormData, set: (f: FormData) => void) {
@@ -409,8 +413,51 @@ export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
           />
         </Section>
 
-        {/* 5. Condutor adicional */}
-        <Section number={5} title="Condutor Adicional">
+        {/* 5. Condutor principal */}
+        <Section number={5} title="Condutor Principal">
+          <RadioGroup
+            label="O condutor principal é o segurado?"
+            name="condutorESegurado"
+            options={[
+              { value: 'S', label: 'Sim' },
+              { value: 'N', label: 'Não' },
+            ]}
+            value={form.condutorESegurado}
+            onChange={(v) => setForm(prev => ({
+              ...prev,
+              condutorESegurado: v,
+              condutorCpf: v === 'S' ? '' : prev.condutorCpf,
+              condutorNascimento: v === 'S' ? '' : prev.condutorNascimento,
+            }))}
+            inline
+          />
+          {form.condutorESegurado === 'N' && (
+            <>
+              <InputField label="CPF do condutor principal" required>
+                <input
+                  className={inputCls}
+                  placeholder="000.000.000-00"
+                  value={form.condutorCpf}
+                  onChange={(e) => set('condutorCpf')(cpfMask(e.target.value))}
+                  inputMode="numeric"
+                  required
+                />
+              </InputField>
+              <InputField label="Data de nascimento do condutor principal" required>
+                <input
+                  className={inputCls}
+                  type="date"
+                  value={form.condutorNascimento}
+                  onChange={(e) => set('condutorNascimento')(e.target.value)}
+                  required
+                />
+              </InputField>
+            </>
+          )}
+        </Section>
+
+        {/* 6. Condutor adicional */}
+        <Section number={6} title="Condutor Adicional">
           <RadioGroup
             label="Reside com alguém entre 18 e 25 anos?"
             name="residente1825"

@@ -22,6 +22,9 @@ interface Lead {
   usa_estudo: string | null
   estacionamento_estudo: string | null
   uso_veiculo: string | null
+  condutor_e_segurado: string | null
+  condutor_cpf: string | null
+  condutor_nascimento: string | null
   residente_18_25: string | null
   residente_usa_veiculo: string | null
   km_mensal: string | null
@@ -107,6 +110,11 @@ function LeadCard({ lead }: { lead: Lead }) {
             <DetailRow label="Tipo residência" value={lead.tipo_residencia} />
             <DetailRow label="Garagem" value={lead.tem_garagem === 'S' ? 'Sim' : lead.tem_garagem === 'N' ? 'Não' : null} />
             <DetailRow label="Portão" value={lead.tipo_portao} />
+
+            <p className="label-caps text-on-surface-variant mt-4 mb-2">Condutor principal</p>
+            <DetailRow label="Condutor é o segurado" value={lead.condutor_e_segurado === 'S' ? 'Sim' : lead.condutor_e_segurado === 'N' ? 'Não' : null} />
+            <DetailRow label="CPF do condutor" value={lead.condutor_cpf} />
+            <DetailRow label="Nascimento do condutor" value={lead.condutor_nascimento ? new Date(lead.condutor_nascimento + 'T12:00:00').toLocaleDateString('pt-BR') : null} />
 
             <p className="label-caps text-on-surface-variant mt-4 mb-2">Uso do veículo</p>
             <DetailRow label="Uso" value={lead.uso_veiculo} />
