@@ -44,6 +44,7 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
+  // Rotas sempre acessíveis, mesmo sem sessão
   const publicPaths = ['/auth/login', '/cotacao/']
   const isPublic = publicPaths.some((p) => pathname.startsWith(p))
 
@@ -51,7 +52,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
-  if (session && isPublic) {
+  // Apenas rotas de autenticação redirecionam para o dashboard quando logado
+  // (cotação deve ser acessível mesmo com sessão ativa)
+  const authOnlyPaths = ['/auth/login']
+  const isAuthOnly = authOnlyPaths.some((p) => pathname.startsWith(p))
+
+  if (session && isAuthOnly) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
