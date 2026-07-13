@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Car, Copy, CheckCircle, Link2, ChevronDown, ChevronUp, User, Phone, Mail, MapPin, Calendar } from 'lucide-react'
+import { Car, Copy, CheckCircle, Link2, ChevronDown, ChevronUp, User, Phone, Mail, MapPin, Calendar, Trash2, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface Lead {
@@ -52,8 +52,21 @@ function DetailRow({ label, value }: { label: string; value: string | null | und
   )
 }
 
-function LeadCard({ lead }: { lead: Lead }) {
+function LeadCard({ lead, onDelete }: { lead: Lead; onDelete: (id: string) => void }) {
   const [open, setOpen] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/leads/auto/${lead.id}`, { method: 'DELETE' })
+      if (res.ok) onDelete(lead.id)
+    } finally {
+      setDeleting(false)
+      setConfirming(false)
+    }
+  }
 
   return (
     <Card>
@@ -127,6 +140,36 @@ function LeadCard({ lead }: { lead: Lead }) {
             <p className="label-caps text-on-surface-variant mt-4 mb-2">Condutor adicional</p>
             <DetailRow label="Reside 18-25 anos" value={lead.residente_18_25 === 'S' ? 'Sim' : lead.residente_18_25 === 'N' ? 'Não' : null} />
             <DetailRow label="Utiliza veículo" value={lead.residente_usa_veiculo === 'S' ? 'Sim' : lead.residente_usa_veiculo === 'N' ? 'Não' : null} />
+
+            <div className="mt-5 pt-4 border-t border-outline-variant/20">
+              {confirming ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-body-sm text-error flex-1">Excluir este lead?</span>
+                  <button
+                    onClick={() => setConfirming(false)}
+                    className="px-3 py-1.5 rounded text-body-sm text-on-surface-variant border border-outline-variant/40 hover:bg-surface-container"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="px-3 py-1.5 rounded text-body-sm text-white bg-error hover:bg-error/90 disabled:opacity-60 flex items-center gap-1.5"
+                  >
+                    {deleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                    Excluir
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirming(true)}
+                  className="flex items-center gap-2 text-body-sm text-error hover:text-error/80 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Excluir lead
+                </button>
+              )}
+            </div>
           </div>
         )}
       </CardContent>
@@ -134,8 +177,13 @@ function LeadCard({ lead }: { lead: Lead }) {
   )
 }
 
-export function LeadsAutoClient({ corretoraId, leads }: Props) {
+export function LeadsAutoClient({ corretoraId, leads: initialLeads }: Props) {
+  const [leads, setLeads] = useState(initialLeads)
   const [copied, setCopied] = useState(false)
+
+  function handleDelete(id: string) {
+    setLeads((prev) => prev.filter((l) => l.id !== id))
+  }
   const link = typeof window !== 'undefined'
     ? `${window.location.origin}/cotacao/auto/${corretoraId}`
     : `/cotacao/auto/${corretoraId}`
@@ -215,7 +263,7 @@ export function LeadsAutoClient({ corretoraId, leads }: Props) {
         ) : (
           <div className="space-y-3">
             {leads.map((lead) => (
-              <LeadCard key={lead.id} lead={lead} />
+              <LeadCard key={lead.id} lead={lead} onDelete={handleDelete} />
             ))}
           </div>
         )}
