@@ -56,22 +56,26 @@ export async function POST(req: NextRequest) {
   }
 
   // Notifica o admin da corretora via WhatsApp (best-effort)
+  // Seleciona apenas telefone_whatsapp para evitar erro caso whatsapp_instance
+  // ainda não exista na tabela (migration pendente)
   try {
-    const { data: admin } = await service
+    const { data: admin, error: adminError } = await service
       .from('usuarios')
-      .select('telefone_whatsapp, whatsapp_instance')
+      .select('telefone_whatsapp')
       .eq('corretora_id', corretoraId)
       .eq('adm', 'S')
       .single()
 
-    if (!admin) {
+    if (adminError) {
+      console.error('[leads/auto] Erro ao buscar admin:', adminError.message)
+    } else if (!admin) {
       console.warn('[leads/auto] Admin não encontrado para corretora:', corretoraId)
     } else if (!admin.telefone_whatsapp) {
-      console.warn('[leads/auto] Admin sem telefone_whatsapp configurado, corretora:', corretoraId)
+      console.warn('[leads/auto] Admin sem WhatsApp configurado no perfil, corretora:', corretoraId)
     } else {
-      const instance = admin.whatsapp_instance ?? process.env.EVOLUTION_INSTANCE
+      const instance = process.env.EVOLUTION_INSTANCE
       if (!instance) {
-        console.warn('[leads/auto] Nenhuma instância WhatsApp configurada para corretora:', corretoraId)
+        console.warn('[leads/auto] EVOLUTION_INSTANCE não configurado')
       } else {
         const placa = fields.placaChassi ? `\n🚗 Placa/Chassi: ${fields.placaChassi}` : ''
         const texto =
@@ -80,11 +84,13 @@ export async function POST(req: NextRequest) {
           `📱 Celular: ${fields.celular}\n` +
           `📧 E-mail: ${fields.email || 'Não informado'}` +
           placa
+        console.log('[leads/auto] Enviando WhatsApp para:', admin.telefone_whatsapp, 'via instância:', instance)
         await sendWhatsAppMessage(admin.telefone_whatsapp, texto, instance)
+        console.log('[leads/auto] WhatsApp enviado com sucesso')
       }
     }
   } catch (waError) {
-    console.error('[leads/auto] Erro ao enviar notificação WhatsApp:', waError)
+    console.error('[leads/auto] Erro ao enviar notificação WhatsApp:', waError instanceof Error ? waError.message : waError)
   }
 
   return NextResponse.json({ success: true })
