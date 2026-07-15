@@ -226,23 +226,6 @@ DROP POLICY IF EXISTS "leads_auto_corretora" ON leads_auto;
 CREATE POLICY "leads_auto_corretora" ON leads_auto FOR ALL
   USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
 
--- Documentos para o Assistente IA (Condições Gerais das seguradoras)
-CREATE TABLE IF NOT EXISTS assistente_docs (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  corretora_id uuid REFERENCES corretoras(id) NOT NULL,
-  seguradora text NOT NULL,
-  nome text NOT NULL,
-  texto text NOT NULL,
-  paginas int,
-  criado_em timestamptz DEFAULT now()
-);
-
-ALTER TABLE assistente_docs ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "assistente_docs_corretora" ON assistente_docs;
-CREATE POLICY "assistente_docs_corretora" ON assistente_docs FOR ALL
-  USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
-
 -- Storage bucket (run in Supabase dashboard or via API)
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('apolices-pdf', 'apolices-pdf', true);
 
