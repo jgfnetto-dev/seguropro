@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, ChevronDown, ContactRound } from 'lucide-react'
+import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, ChevronDown, ContactRound, Bot } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { cn } from '@/lib/utils'
 import { APP_VERSION } from '@/lib/version'
@@ -16,6 +16,7 @@ const navLinks = [
   { href: '/conciliacao', label: 'Conciliação', icon: HandCoins },
   { href: '/historico-renovacao', label: 'Histórico', icon: Archive },
   { href: '/tarefas', label: 'Tarefas', icon: ListChecks },
+  { href: '/assistente', label: 'Assistente IA', icon: Bot },
   { href: '/usuarios', label: 'Usuários', icon: UserCog },
 ]
 
