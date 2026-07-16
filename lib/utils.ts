@@ -35,9 +35,9 @@ export function getInitials(name: string) {
     .toUpperCase()
 }
 
-export const RAMOS_SEGURO = ['Auto', 'Moto', 'Vida', 'Residencial', 'Empresarial']
+export const RAMOS_SEGURO = ['Auto', 'Moto', 'Vida', 'Residencial', 'Empresarial', 'RC Obras']
 
-export const TIPOS_SEGURO = ['Automóvel', 'Moto', 'Vida', 'Residencial', 'Empresarial', 'Saúde', 'Dental', 'Rural', 'Frota', 'Previdência', 'Outros']
+export const TIPOS_SEGURO = ['Automóvel', 'Moto', 'Vida', 'Residencial', 'Empresarial', 'Saúde', 'Dental', 'Rural', 'Frota', 'Previdência', 'RC Obras', 'Outros']
 
 export const MESES = [
   { value: '1', label: 'Janeiro' },
