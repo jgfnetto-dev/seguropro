@@ -14,6 +14,9 @@ type FormData = {
   email: string
   celular: string
   placaChassi: string
+  modeloAno: string
+  kitGas: string
+  blindagem: string
   cepPernoite: string
   enderecoCompleto: string
   estadoCivil: string
@@ -35,6 +38,7 @@ type FormData = {
 
 const INITIAL: FormData = {
   nome: '', cpf: '', email: '', celular: '', placaChassi: '',
+  modeloAno: '', kitGas: '', blindagem: '',
   cepPernoite: '', enderecoCompleto: '', estadoCivil: '', tipoResidencia: '',
   temGaragem: '', tipoPortao: '', usaTrabalho: '', estacionamentoTrabalho: '',
   usaEstudo: '', estacionamentoEstudo: '', usoVeiculo: '',
@@ -253,6 +257,36 @@ export function CotacaoAutoForm({ corretoraId, nomeCorretora }: Props) {
               onChange={(e) => set('placaChassi')(e.target.value.toUpperCase())}
             />
           </InputField>
+          <InputField label="Modelo e Ano">
+            <input
+              className={inputCls}
+              placeholder="Ex: Honda Civic 2022"
+              value={form.modeloAno}
+              onChange={(e) => set('modeloAno')(e.target.value)}
+            />
+          </InputField>
+          <RadioGroup
+            label="O veículo possui Kit Gás?"
+            name="kitGas"
+            options={[
+              { value: 'S', label: 'Sim' },
+              { value: 'N', label: 'Não' },
+            ]}
+            value={form.kitGas}
+            onChange={set('kitGas')}
+            inline
+          />
+          <RadioGroup
+            label="O veículo possui Blindagem?"
+            name="blindagem"
+            options={[
+              { value: 'S', label: 'Sim' },
+              { value: 'N', label: 'Não' },
+            ]}
+            value={form.blindagem}
+            onChange={set('blindagem')}
+            inline
+          />
         </Section>
 
         {/* 3. Residência */}

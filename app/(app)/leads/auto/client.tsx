@@ -11,6 +11,9 @@ interface Lead {
   email: string | null
   celular: string
   placa_chassi: string | null
+  modelo_ano: string | null
+  kit_gas: string | null
+  blindagem: string | null
   cep_pernoite: string | null
   endereco_completo: string | null
   estado_civil: string | null
@@ -118,6 +121,9 @@ function LeadCard({ lead, onDelete }: { lead: Lead; onDelete: (id: string) => vo
 
             <p className="label-caps text-on-surface-variant mt-4 mb-2">Veículo e residência</p>
             <DetailRow label="Placa / Chassi" value={lead.placa_chassi} />
+            <DetailRow label="Modelo / Ano" value={lead.modelo_ano} />
+            <DetailRow label="Kit Gás" value={lead.kit_gas === 'S' ? 'Sim' : lead.kit_gas === 'N' ? 'Não' : null} />
+            <DetailRow label="Blindagem" value={lead.blindagem === 'S' ? 'Sim' : lead.blindagem === 'N' ? 'Não' : null} />
             <DetailRow label="CEP pernoite" value={lead.cep_pernoite} />
             <DetailRow label="Endereço" value={lead.endereco_completo} />
             <DetailRow label="Tipo residência" value={lead.tipo_residencia} />
