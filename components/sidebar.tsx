@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, ChevronDown, ContactRound } from 'lucide-react'
+import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, Heart, ChevronDown, ContactRound } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { cn } from '@/lib/utils'
 import { APP_VERSION } from '@/lib/version'
@@ -21,6 +21,7 @@ const navLinks = [
 
 const leadsSubItems = [
   { href: '/leads/auto', label: 'Automóvel', icon: Car },
+  { href: '/leads/saude', label: 'Plano de Saúde', icon: Heart },
 ]
 
 export function Sidebar({ userName }: { userName?: string }) {

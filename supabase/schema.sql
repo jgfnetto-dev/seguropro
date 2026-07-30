@@ -225,6 +225,32 @@ CREATE TABLE IF NOT EXISTS leads_auto (
 
 ALTER TABLE leads_auto ENABLE ROW LEVEL SECURITY;
 
+-- Leads de adesão a plano de saúde (enviados por clientes via link público)
+CREATE TABLE IF NOT EXISTS leads_saude (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  corretora_id uuid REFERENCES corretoras(id) NOT NULL,
+  cpf text NOT NULL,
+  nome text NOT NULL,
+  data_nascimento text,
+  celular text NOT NULL,
+  email text,
+  tem_plano text,
+  plano_vigente text,
+  tempo_plano text,
+  tipo_contratacao text,
+  preferencia_hospital text,
+  em_tratamento text,
+  descricao_tratamento text,
+  incluir_dependentes text,
+  criado_em timestamptz DEFAULT now()
+);
+
+ALTER TABLE leads_saude ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "leads_saude_corretora" ON leads_saude;
+CREATE POLICY "leads_saude_corretora" ON leads_saude FOR ALL
+  USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
+
 DROP POLICY IF EXISTS "leads_auto_corretora" ON leads_auto;
 CREATE POLICY "leads_auto_corretora" ON leads_auto FOR ALL
   USING (corretora_id = (SELECT corretora_id FROM usuarios WHERE id = auth.uid()));
