@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { MESES, anosDisponiveis } from '@/lib/utils'
 import { ApoliceRow } from './apolice-row'
+import { ExportarApolicesButton } from './exportar-button'
 
 type SortField = 'cliente' | 'seguradora' | 'data_fim'
 
@@ -130,9 +131,12 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
           <h1 className="text-h1 text-on-surface">Apólices</h1>
           <p className="text-body-sm text-on-surface-variant mt-1">Gerencie todas as apólices cadastradas.</p>
         </div>
-        <Link href="/apolices/novo">
-          <Button className="gap-2"><Plus className="w-4 h-4" /> Nova Apólice</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportarApolicesButton filtros={{ q: searchParams.q, mes: searchParams.mes, ano: searchParams.ano, sort: searchParams.sort, dir: searchParams.dir }} />
+          <Link href="/apolices/novo">
+            <Button className="gap-2"><Plus className="w-4 h-4" /> Nova Apólice</Button>
+          </Link>
+        </div>
       </div>
 
       <form method="GET" className="flex flex-wrap items-end gap-3">
