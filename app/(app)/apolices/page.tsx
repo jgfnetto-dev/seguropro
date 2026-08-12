@@ -24,7 +24,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
 
   let query = supabase
     .from('apolices')
-    .select('*, cliente:clientes(segurado, cpf_cnpj, telefone), seguradora:seguradoras(nome)')
+    .select('*, status_manual, cliente:clientes(segurado, cpf_cnpj, telefone), seguradora:seguradoras(nome)')
 
   if (sort === 'data_fim') {
     query = query.order('data_fim', { ascending })
@@ -91,7 +91,8 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     documentosPorApolice.set(d.apolice_id, lista)
   })
 
-  function getStatusBadge(dataFim: string) {
+  function getStatusBadge(dataFim: string, statusManual?: string | null) {
+    if (statusManual === 'cancelado') return <Badge variant="outline">Cancelada</Badge>
     const hoje = new Date()
     const fim = new Date(dataFim)
     const diff = (fim.getTime() - hoje.getTime()) / 86400000
@@ -198,7 +199,8 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
                 isUltimaApoliceDoCliente={(contagemPorCliente.get(a.cliente_id) ?? 0) <= 1}
                 endossos={endossosPorApolice.get(a.id) ?? []}
                 documentos={documentosPorApolice.get(a.id) ?? []}
-                statusBadge={getStatusBadge(a.data_fim)}
+                statusBadge={getStatusBadge(a.data_fim, a.status_manual)}
+                statusManual={a.status_manual ?? null}
               />
             ))}
             {!apolices?.length && (

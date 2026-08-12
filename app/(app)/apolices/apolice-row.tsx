@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Download, ChevronDown, Trash2, Files } from 'lucide-react'
+import { Download, ChevronDown, Trash2, Files, Ban, RotateCcw } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
 import { DeleteApoliceButton } from './delete-button'
@@ -79,6 +79,7 @@ interface ApoliceRowData {
   premio_liquido: number
   premio_total: number
   pdf_url?: string | null
+  status_manual?: string | null
   cliente?: { segurado?: string; telefone?: string | null }
   seguradora?: { nome?: string }
 }
@@ -90,13 +91,37 @@ interface Props {
   endossos: Endosso[]
   documentos: DocumentoApolice[]
   statusBadge: React.ReactNode
+  statusManual: string | null
 }
 
-export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endossos, documentos, statusBadge }: Props) {
+export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endossos, documentos, statusBadge, statusManual }: Props) {
   const router = useRouter()
   const { showToast, ToastComponent } = useToast()
   const [expanded, setExpanded] = useState(false)
   const [excluindoId, setExcluindoId] = useState<string | null>(null)
+  const [cancelado, setCancelado] = useState(statusManual === 'cancelado')
+  const [togglingStatus, setTogglingStatus] = useState(false)
+
+  async function handleToggleStatus() {
+    setTogglingStatus(true)
+    const novoStatus = cancelado ? null : 'cancelado'
+    try {
+      const res = await fetch(`/api/apolices/${a.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status_manual: novoStatus }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        showToast(`Erro: ${data.error ?? 'falha desconhecida'}`, 'error')
+        return
+      }
+      setCancelado(!cancelado)
+      showToast(novoStatus === 'cancelado' ? 'Apólice marcada como Cancelada.' : 'Apólice reativada.', 'success')
+    } finally {
+      setTogglingStatus(false)
+    }
+  }
   const temEndosso = endossos.length > 0
   const zebra = index % 2 === 0 ? '' : 'bg-surface-container-low/40'
 
@@ -145,7 +170,12 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
         <td className="px-1.5 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
         <td className="px-1.5 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_total)}</td>
         <td className="px-1.5 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
-        <td className="px-1.5 py-3">{statusBadge}</td>
+        <td className="px-1.5 py-3">
+          {cancelado
+            ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border border-outline-variant/60 text-on-surface-variant">Cancelada</span>
+            : statusBadge
+          }
+        </td>
         <td className="px-1.5 py-3 text-right">
           <div className="flex items-center justify-end gap-1">
             {a.pdf_url && (
@@ -168,6 +198,15 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
               temPdf={!!a.pdf_url}
             />
             <EndossoButton apoliceId={a.id} numeroApolice={a.numero_apolice} />
+            <button
+              type="button"
+              onClick={handleToggleStatus}
+              disabled={togglingStatus}
+              title={cancelado ? 'Reativar apólice' : 'Cancelar apólice'}
+              className={`p-1.5 rounded border border-outline-variant bg-card hover:bg-surface-container disabled:opacity-50 transition-colors ${cancelado ? 'text-secondary hover:text-secondary' : 'text-on-surface-variant hover:text-error'}`}
+            >
+              {cancelado ? <RotateCcw className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+            </button>
             <DeleteApoliceButton
               id={a.id}
               numeroApolice={a.numero_apolice}

@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS apolices (
   comissao_percentual numeric(5,2),
   pdf_url text,
   vendedor text,
+  status_manual text,
   criado_em timestamptz DEFAULT now(),
   CONSTRAINT apolices_cliente_numero_unique UNIQUE (cliente_id, numero_apolice)
 );
