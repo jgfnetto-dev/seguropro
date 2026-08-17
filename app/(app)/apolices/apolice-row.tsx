@@ -145,7 +145,7 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
     <>
       {ToastComponent}
       <tr className={`border-b border-outline-variant/20 hover:bg-surface-container-low ${zebra}`}>
-        <td className="px-1.5 py-3">
+        <td className="px-1 py-3">
           {temEndosso && (
             <button
               type="button"
@@ -157,26 +157,26 @@ export function ApoliceRow({ apolice: a, index, isUltimaApoliceDoCliente, endoss
             </button>
           )}
         </td>
-        <td className="px-2 py-3">
+        <td className="px-1.5 py-3">
           <Link href={`/apolices/${a.id}`} className="text-body-sm font-medium text-secondary hover:underline">
             {a.numero_apolice}
           </Link>
         </td>
-        <td className="px-2 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
-        <td className="px-1.5 py-3 text-body-sm text-on-surface-variant">{a.data_emissao ? formatDate(a.data_emissao) : '—'}</td>
-        <td className="px-1.5 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
-        <td className="px-1.5 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
-        <td className="px-1.5 py-3 text-body-sm text-on-surface-variant">{a.seguradora?.nome}</td>
-        <td className="px-1.5 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
-        <td className="px-1.5 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_total)}</td>
-        <td className="px-1.5 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
-        <td className="px-1.5 py-3">
+        <td className="px-1.5 py-3 text-body-sm text-on-surface">{a.cliente?.segurado}</td>
+        <td className="px-1 py-3 text-body-sm text-on-surface-variant">{a.data_emissao ? formatDate(a.data_emissao) : '—'}</td>
+        <td className="px-1 py-3 text-body-sm text-on-surface-variant">{formatDate(a.data_inicio)}</td>
+        <td className="px-1 py-3 text-body-sm text-on-surface-variant">{a.tipo_seguro}</td>
+        <td className="px-1 py-3 text-body-sm text-on-surface-variant">{a.seguradora?.nome}</td>
+        <td className="px-1 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_liquido)}</td>
+        <td className="px-1 py-3 text-body-sm text-on-surface">{formatCurrency(a.premio_total)}</td>
+        <td className="px-1 py-3 text-body-sm text-on-surface">{formatDate(a.data_fim)}</td>
+        <td className="px-1 py-3">
           {cancelado
             ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border border-outline-variant/60 text-on-surface-variant">Cancelada</span>
             : statusBadge
           }
         </td>
-        <td className="px-1.5 py-3 text-right">
+        <td className="px-1 py-3 pr-3 text-right">
           <div className="flex items-center justify-end gap-1">
             {a.pdf_url && (
               <a

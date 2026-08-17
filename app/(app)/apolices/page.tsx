@@ -172,22 +172,23 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
         )}
       </form>
 
-      <Card>
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-outline-variant/30">
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3 w-8"></th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3">Nº Apólice</th>
-              <th className="label-caps text-on-surface-variant text-left px-2 py-3"><SortableHeader field="cliente" label="Cliente" /></th>
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3">Emissão</th>
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3">Início</th>
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3">Tipo</th>
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3"><SortableHeader field="seguradora" label="Seguradora" /></th>
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3">Pr. Líquido</th>
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3">Pr. Total</th>
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3"><SortableHeader field="data_fim" label="Vencimento" /></th>
-              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3">Status</th>
-              <th className="label-caps text-on-surface-variant text-right px-1.5 py-3">Ações</th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3 w-7"></th>
+              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3">Nº Apólice</th>
+              <th className="label-caps text-on-surface-variant text-left px-1.5 py-3"><SortableHeader field="cliente" label="Cliente" /></th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3">Emissão</th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3">Início</th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3">Tipo</th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3"><SortableHeader field="seguradora" label="Seguradora" /></th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3">Pr. Líquido</th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3">Pr. Total</th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3"><SortableHeader field="data_fim" label="Vencimento" /></th>
+              <th className="label-caps text-on-surface-variant text-left px-1 py-3">Status</th>
+              <th className="label-caps text-on-surface-variant text-right px-1 py-3 pr-3">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -212,6 +213,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
             )}
           </tbody>
         </table>
+        </div>
         {apolices && apolices.length > 0 && (
           <div className="px-4 py-3 border-t border-outline-variant/20 text-body-sm text-on-surface-variant">
             Exibindo {apolices.length} apólice{apolices.length !== 1 ? 's' : ''}
