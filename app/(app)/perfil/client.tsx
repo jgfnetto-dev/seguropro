@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Lock, LogOut, User, Smartphone, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Shield, Lock, LogOut, User, Smartphone, CheckCircle, XCircle, Loader2, Building2, UploadCloud } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +13,7 @@ import type { Usuario } from '@/types'
 
 interface Props {
   usuario: Usuario | null
+  corretora: { nome: string; logo_url: string | null } | null
   stats: { totalApolices: number; renovacoesMes: number; clientesNovos: number }
 }
 
@@ -174,7 +175,74 @@ function WhatsAppConnectCard() {
 }
 
 
-export function PerfilClient({ usuario, stats }: Props) {
+function LogoCard({ initialUrl, corretoraName, showToast }: {
+  initialUrl: string | null
+  corretoraName: string
+  showToast: (msg: string, type: 'success' | 'error') => void
+}) {
+  const [logoUrl, setLogoUrl] = useState<string | null>(initialUrl)
+  const [uploading, setUploading] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/corretora/logo', { method: 'POST', body: fd })
+    const data = await res.json()
+    setUploading(false)
+    if (!res.ok) { showToast(data.error ?? 'Erro ao enviar logo.', 'error'); return }
+    setLogoUrl(data.logo_url)
+    showToast('Logo atualizada com sucesso!', 'success')
+  }
+
+  return (
+    <Card>
+      <CardContent className="pt-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Building2 className="w-4 h-4 text-secondary" />
+          <h3 className="text-h3 text-on-surface">Identidade da Corretora</h3>
+        </div>
+        <div className="flex items-center gap-5">
+          <div className="w-24 h-24 rounded-lg border border-outline-variant/40 bg-surface-container flex items-center justify-center overflow-hidden shrink-0">
+            {logoUrl
+              ? <img src={logoUrl} alt="Logo da corretora" className="w-full h-full object-contain p-1" />
+              : <span className="text-2xl font-bold text-on-surface-variant">{getInitials(corretoraName)}</span>
+            }
+          </div>
+          <div className="space-y-2 flex-1">
+            <p className="text-body-sm text-on-surface font-medium">{corretoraName}</p>
+            <p className="text-xs text-on-surface-variant">PNG, JPG ou SVG · máximo 2 MB</p>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+              className="hidden"
+              onChange={handleFile}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+              className="gap-2"
+            >
+              {uploading
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
+                : <><UploadCloud className="w-4 h-4" /> {logoUrl ? 'Alterar logo' : 'Enviar logo'}</>
+              }
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export function PerfilClient({ usuario, corretora, stats }: Props) {
   const router = useRouter()
   const { showToast, ToastComponent } = useToast()
   const isAdmin = usuario?.adm === 'S'
@@ -218,6 +286,14 @@ export function PerfilClient({ usuario, stats }: Props) {
           <h2 className="text-h2 text-on-surface">{usuario?.nome}</h2>
           <p className="text-body-sm text-on-surface-variant">Corretor • {usuario?.email}</p>
         </div>
+
+        {isAdmin && corretora && (
+          <LogoCard
+            initialUrl={corretora.logo_url ?? null}
+            corretoraName={corretora.nome}
+            showToast={showToast}
+          />
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>

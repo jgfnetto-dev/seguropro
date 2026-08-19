@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS corretoras (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nome text NOT NULL,
+  logo_url text,
   criado_em timestamptz DEFAULT now()
 );
 

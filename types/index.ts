@@ -1,6 +1,7 @@
 export interface Corretora {
   id: string
   nome: string
+  logo_url?: string | null
   criado_em: string
 }
 

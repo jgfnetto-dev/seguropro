@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createServerSupabaseClient, createServiceClient } from '@/lib/supabase'
 import { PerfilClient } from './client'
 
 export default async function PerfilPage() {
@@ -34,9 +34,21 @@ export default async function PerfilPage() {
     .eq('corretora_id', usuario?.corretora_id)
     .gte('criado_em', new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString())
 
+  let corretora: { nome: string; logo_url: string | null } | null = null
+  if (usuario?.corretora_id) {
+    const service = createServiceClient()
+    const { data } = await service
+      .from('corretoras')
+      .select('nome, logo_url')
+      .eq('id', usuario.corretora_id)
+      .single()
+    corretora = data ?? null
+  }
+
   return (
     <PerfilClient
       usuario={usuario}
+      corretora={corretora}
       stats={{
         totalApolices: totalApolices ?? 0,
         renovacoesMes: renovacoesMes ?? 0,

@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, Heart, ChevronDown, ContactRound } from 'lucide-react'
+import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, Heart, ChevronDown, ContactRound, Calculator } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { cn } from '@/lib/utils'
 import { APP_VERSION } from '@/lib/version'
@@ -16,7 +16,14 @@ const navLinks = [
   { href: '/conciliacao', label: 'Conciliação', icon: HandCoins },
   { href: '/historico-renovacao', label: 'Histórico', icon: Archive },
   { href: '/tarefas', label: 'Tarefas', icon: ListChecks },
+]
+
+const bottomNavLinks = [
   { href: '/usuarios', label: 'Usuários', icon: UserCog },
+]
+
+const simuladorSubItems = [
+  { href: '/simulador-consorcio/automovel', label: 'Simula Automóvel', icon: Car },
 ]
 
 const leadsSubItems = [
@@ -28,6 +35,7 @@ export function Sidebar({ userName }: { userName?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const [leadsOpen, setLeadsOpen] = useState(() => !!pathname?.startsWith('/leads'))
+  const [simuladorOpen, setSimuladorOpen] = useState(() => !!pathname?.startsWith('/simulador-consorcio'))
 
   async function handleLogout() {
     const supabase = getSupabaseBrowser()
@@ -37,6 +45,57 @@ export function Sidebar({ userName }: { userName?: string }) {
   }
 
   const leadsActive = pathname?.startsWith('/leads')
+  const simuladorActive = pathname?.startsWith('/simulador-consorcio')
+
+  function SubMenu({
+    icon: Icon, label, open, onToggle, active, items,
+  }: {
+    icon: React.ElementType; label: string; open: boolean
+    onToggle: () => void; active: boolean
+    items: { href: string; label: string; icon: React.ElementType }[]
+  }) {
+    return (
+      <div>
+        <button
+          onClick={onToggle}
+          className={cn(
+            'flex items-center justify-between px-3 py-2 rounded text-body-sm font-medium w-full transition-colors',
+            active
+              ? 'bg-primary/10 text-primary'
+              : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+          )}
+        >
+          <span className="flex items-center gap-3 min-w-0">
+            <Icon className="w-4 h-4 shrink-0" />
+            <span className="truncate">{label}</span>
+          </span>
+          <ChevronDown className={cn('w-3 h-3 shrink-0 ml-2 transition-transform duration-200', open && 'rotate-180')} />
+        </button>
+        {open && (
+          <div className="mt-1 space-y-0.5">
+            {items.map(({ href, label: itemLabel, icon: ItemIcon }) => {
+              const itemActive = pathname === href
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    'flex items-center gap-3 pl-9 pr-3 py-2 rounded text-body-sm font-medium transition-colors',
+                    itemActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                  )}
+                >
+                  <ItemIcon className="w-4 h-4" />
+                  {itemLabel}
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <>
@@ -67,44 +126,45 @@ export function Sidebar({ userName }: { userName?: string }) {
             )
           })}
 
+          {/* Simulador de Consórcio group */}
+          <SubMenu
+            icon={Calculator}
+            label="Simulador Consórcio"
+            open={simuladorOpen}
+            onToggle={() => setSimuladorOpen(o => !o)}
+            active={!!simuladorActive}
+            items={simuladorSubItems}
+          />
+
           {/* Novos Leads group */}
-          <div>
-            <button
-              onClick={() => setLeadsOpen((o) => !o)}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded text-body-sm font-medium w-full transition-colors',
-                leadsActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-              )}
-            >
-              <ContactRound className="w-4 h-4" />
-              Novos Leads
-              <ChevronDown className={cn('w-3 h-3 ml-auto transition-transform duration-200', leadsOpen && 'rotate-180')} />
-            </button>
-            {leadsOpen && (
-              <div className="mt-1 space-y-0.5">
-                {leadsSubItems.map(({ href, label, icon: Icon }) => {
-                  const active = pathname === href
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      className={cn(
-                        'flex items-center gap-3 pl-9 pr-3 py-2 rounded text-body-sm font-medium transition-colors',
-                        active
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-                      )}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {label}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+          <SubMenu
+            icon={ContactRound}
+            label="Novos Leads"
+            open={leadsOpen}
+            onToggle={() => setLeadsOpen(o => !o)}
+            active={!!leadsActive}
+            items={leadsSubItems}
+          />
+
+          {/* Bottom nav links (Usuários) */}
+          {bottomNavLinks.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href || pathname?.startsWith(href)
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 rounded text-body-sm font-medium transition-colors',
+                  active
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </Link>
+            )
+          })}
         </nav>
 
         <div className="border-t border-outline-variant/30 p-3 space-y-1 shrink-0">
