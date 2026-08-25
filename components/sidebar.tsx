@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, Heart, ChevronDown, ContactRound, Calculator } from 'lucide-react'
+import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, Heart, ChevronDown, ContactRound, Calculator, Home } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { cn } from '@/lib/utils'
 import { APP_VERSION } from '@/lib/version'
@@ -24,6 +24,7 @@ const bottomNavLinks = [
 
 const simuladorSubItems = [
   { href: '/simulador-consorcio/automovel', label: 'Simula Automóvel', icon: Car },
+  { href: '/simulador-consorcio/imovel', label: 'Simula Imóvel', icon: Home },
 ]
 
 const leadsSubItems = [

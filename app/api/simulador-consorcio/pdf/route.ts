@@ -107,8 +107,11 @@ export async function POST(req: NextRequest) {
     page.drawText(nomeCorretora, { x: 72, y: hBot + 50, size: 13, font: bold, color: rgb(1, 1, 1) })
   }
 
-  // Right panel title, vertically centered
-  page.drawText('Simulação de Consórcio', { x: 260, y: hBot + 38, size: 14, font: regular, color: rgb(0.80, 0.85, 0.92) })
+  // Right panel title — "Imóvel" when taxa antecipada present, else "Automóvel"
+  const titulo = resultado.taxaAntecipada && resultado.taxaAntecipada > 0
+    ? 'Simulação de Consórcio — Imóvel'
+    : 'Simulação de Consórcio — Automóvel'
+  page.drawText(titulo, { x: 260, y: hBot + 38, size: 12, font: regular, color: rgb(0.80, 0.85, 0.92) })
 
   // ─── TABLE ────────────────────────────────────────────────────────────
   const dark = rgb(0.07, 0.09, 0.14)
@@ -167,6 +170,15 @@ export async function POST(req: NextRequest) {
   page.drawText('Valor da Parcela normal', { x: mL, y: y + 9, size: 10, font: regular, color: muted })
   textRight(moeda(resultado.valorParcelaNormal), y + 9, regular, 10, muted)
   hline(y - 4)
+
+  // ── ROW 6.5: 12 primeiras parcelas (apenas Imóvel com taxa antecipada) ─
+  if (resultado.taxaAntecipada && resultado.taxaAntecipada > 0) {
+    y -= 30
+    page.drawRectangle({ x: mL, y: y - 3, width: tW, height: 28, color: rgb(0.99, 0.95, 0.80) })
+    page.drawText('12 primeiras parcelas', { x: mL + 10, y: y + 8, size: 10, font: bold, color: rgb(0.55, 0.38, 0.05) })
+    const comboStr = `${moeda(resultado.taxaAntecipada / 12)} + ${moeda(resultado.parcelaComRedutor)}`
+    textRight(comboStr, y + 8, bold, 10, rgb(0.55, 0.35, 0.03))
+  }
 
   // ── ROW 7: Valor da parcela — final blue row ──────────────────────────
   y -= 38
