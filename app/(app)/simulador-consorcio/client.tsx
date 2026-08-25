@@ -220,7 +220,7 @@ export function SimuladorConsorcioClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-h1 text-on-surface">Simulador de Consórcio</h1>
+          <h1 className="text-h1 text-on-surface">Simulador de Consórcio — Automóvel/Pesados</h1>
           <p className="text-body-sm text-on-surface-variant mt-1">Preencha os parâmetros para visualizar a simulação.</p>
         </div>
         {resultado && (
