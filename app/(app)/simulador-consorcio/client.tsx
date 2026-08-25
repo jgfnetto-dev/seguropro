@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { FileDown, Calculator, RotateCcw } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { FileDown, Calculator, RotateCcw, MessageSquare, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
 
 const REDUTORES = [0, 10, 15, 20, 25, 30, 35, 40, 45, 50]
 
@@ -187,12 +189,98 @@ const inputCls = 'w-full h-10 px-3 rounded border border-outline-variant bg-surf
 export function SimuladorConsorcioClient() {
   const [params, setParams] = useState<Params>(INITIAL)
   const [gerandoPDF, setGerandoPDF] = useState(false)
+  const [copiado, setCopiado] = useState(false)
+  const [modalWhats, setModalWhats] = useState(false)
+  const [telefone, setTelefone] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const { showToast, ToastComponent } = useToast()
 
   const set = useCallback((field: keyof Params, value: string | number) => {
     setParams(prev => ({ ...prev, [field]: value }))
   }, [])
 
   const resultado = calcular(params)
+
+  function buildResumoWhatsApp(): string {
+    if (!resultado) return ''
+    const linhas: string[] = []
+    linhas.push('🚗 *Simulação de Consórcio — Automóvel/Pesados*')
+    linhas.push('')
+    linhas.push(`*Crédito Contratado:* ${moeda(resultado.credito)}`)
+    linhas.push(`*Tipo:* ${params.tipo === 'fisica' ? 'Pessoa Física' : 'Pessoa Jurídica'}`)
+    linhas.push(`*Parcelas:* ${params.parcelas} meses`)
+    linhas.push(`*Taxa Administrativa:* ${params.taxaAdmin || '0'}%`)
+    linhas.push(`*Fundo de Reserva:* ${params.fundoReserva || '0'}%`)
+    linhas.push(`*Saldo Devedor:* ${moeda(resultado.saldoDevedor)}`)
+    if (params.tipo === 'fisica' && resultado.seguroPorParcela > 0) {
+      linhas.push(`*Seguro de Vida (por parcela):* ${moeda(resultado.seguroPorParcela)}`)
+    }
+    linhas.push(`*Redutor do Grupo:* ${params.redutor}%`)
+    if (params.redutor > 0) {
+      linhas.push(`*Economia mensal com redutor:* ${moeda(resultado.economiaMensal)}`)
+    }
+    linhas.push(`*Parcela normal:* ${moeda(resultado.valorParcelaNormal)}`)
+    linhas.push('')
+    linhas.push(`💰 *Valor da Parcela: ${moeda(resultado.parcelaComRedutor)}*`)
+    if (resultado.representatividadeLance !== null) {
+      linhas.push('')
+      linhas.push('_Oferta de Lance_')
+      if (resultado.recursosProprios > 0) {
+        linhas.push(`• Recursos Próprios: ${moeda(resultado.recursosProprios)}`)
+      }
+      if (resultado.recursosCredito > 0) {
+        linhas.push(`• Recurso do Crédito (lance embutido): ${moeda(resultado.recursosCredito)}`)
+      }
+      linhas.push(`• Representatividade do Lance: ${resultado.representatividadeLance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`)
+    }
+    if (resultado.estimativa) {
+      linhas.push('')
+      linhas.push('_Estimativa Pós-Contemplação_')
+      linhas.push(`• Contemplação na parcela: ${params.contemplacao}`)
+      linhas.push(`• Crédito liberado: ${moeda(resultado.estimativa.creditoLiberado)}`)
+      linhas.push(`• Nova parcela: ${moeda(resultado.estimativa.novaParcela)}`)
+      linhas.push(`• Com prazo de: ${resultado.estimativa.comPrazoDe} meses`)
+      if (resultado.estimativa.somentePrazo !== null) {
+        linhas.push(`• Somente prazo: ${resultado.estimativa.somentePrazo} meses`)
+      }
+    }
+    linhas.push('')
+    linhas.push(`_Simulação gerada em ${new Date().toLocaleDateString('pt-BR')} — valores sujeitos a aprovação da administradora_`)
+    return linhas.join('\n')
+  }
+
+  async function enviarWhatsApp() {
+    if (!telefone.trim()) return
+    setEnviando(true)
+    try {
+      const res = await fetch('/api/simulador-consorcio/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telefone: telefone.trim(), texto: buildResumoWhatsApp() }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        showToast('Resumo enviado por WhatsApp!', 'success')
+        setModalWhats(false)
+        setTelefone('')
+      } else {
+        showToast(`Erro ao enviar: ${data.error ?? 'falha desconhecida'}`, 'error')
+      }
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  async function copiarTextoWhatsApp() {
+    try {
+      await navigator.clipboard.writeText(buildResumoWhatsApp())
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2500)
+    } catch {
+      alert('Não foi possível copiar. Tente novamente.')
+    }
+    setModalWhats(false)
+  }
 
   async function handleGerarPDF() {
     if (!resultado) return
@@ -218,15 +306,21 @@ export function SimuladorConsorcioClient() {
 
   return (
     <div className="space-y-6">
+      {ToastComponent}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-h1 text-on-surface">Simulador de Consórcio — Automóvel/Pesados</h1>
           <p className="text-body-sm text-on-surface-variant mt-1">Preencha os parâmetros para visualizar a simulação.</p>
         </div>
         {resultado && (
-          <Button onClick={handleGerarPDF} disabled={gerandoPDF} className="gap-2">
-            {gerandoPDF ? <><RotateCcw className="w-4 h-4 animate-spin" /> Gerando...</> : <><FileDown className="w-4 h-4" /> Gerar PDF</>}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setModalWhats(true)} className="gap-2">
+              <MessageSquare className="w-4 h-4" /> Resumo WhatsApp
+            </Button>
+            <Button onClick={handleGerarPDF} disabled={gerandoPDF} className="gap-2">
+              {gerandoPDF ? <><RotateCcw className="w-4 h-4 animate-spin" /> Gerando...</> : <><FileDown className="w-4 h-4" /> Gerar PDF</>}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -401,6 +495,37 @@ export function SimuladorConsorcioClient() {
           </div>
         )}
       </div>
+
+      {modalWhats && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setModalWhats(false)}>
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl p-6 w-full max-w-sm mx-4 space-y-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-on-surface">Enviar resumo via WhatsApp</h3>
+            <div className="space-y-1.5">
+              <label className="text-sm text-on-surface-variant">Número do WhatsApp</label>
+              <input
+                type="tel"
+                value={telefone}
+                onChange={e => setTelefone(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && telefone.trim() && enviarWhatsApp()}
+                placeholder="Ex: 11999999999"
+                className={inputCls}
+                autoFocus
+              />
+              <p className="text-xs text-slate-400">DDD + número (com ou sem +55)</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={enviarWhatsApp} disabled={!telefone.trim() || enviando} className="flex-1 gap-2">
+                {enviando ? <><RotateCcw className="w-4 h-4 animate-spin" /> Enviando...</> : <><MessageSquare className="w-4 h-4" /> Enviar</>}
+              </Button>
+              <Button variant="outline" onClick={copiarTextoWhatsApp} className="gap-2">
+                {copiado ? <><Check className="w-4 h-4 text-emerald-600" /> Copiado!</> : 'Copiar texto'}
+              </Button>
+              <Button variant="ghost" onClick={() => setModalWhats(false)}>Cancelar</Button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
