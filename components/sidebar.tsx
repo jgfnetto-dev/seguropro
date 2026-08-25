@@ -23,7 +23,7 @@ const bottomNavLinks = [
 ]
 
 const simuladorSubItems = [
-  { href: '/simulador-consorcio/automovel', label: 'Simula Automóvel', icon: Car },
+  { href: '/simulador-consorcio/automovel', label: 'Simula Automóvel/Pesados', icon: Car },
   { href: '/simulador-consorcio/imovel', label: 'Simula Imóvel', icon: Home },
 ]
 
