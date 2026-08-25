@@ -81,13 +81,13 @@ export function Sidebar({ userName }: { userName?: string }) {
                   key={href}
                   href={href}
                   className={cn(
-                    'flex items-center gap-3 pl-9 pr-3 py-2 rounded text-body-sm font-medium transition-colors',
+                    'flex items-start gap-3 pl-9 pr-3 py-2 rounded text-body-sm font-medium transition-colors',
                     itemActive
                       ? 'bg-primary/10 text-primary'
                       : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
                   )}
                 >
-                  <ItemIcon className="w-4 h-4" />
+                  <ItemIcon className="w-4 h-4 shrink-0 mt-0.5" />
                   {itemLabel}
                 </Link>
               )
