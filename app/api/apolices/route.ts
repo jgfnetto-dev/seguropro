@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import { atualizarSnapshotEmissao } from '@/lib/emissao-snapshot'
 
 async function getCorretoraId(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
   const { data: { session } } = await supabase.auth.getSession()
@@ -41,6 +42,13 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Grava no snapshot anual
+  const anoEmissao = data.data_emissao ? parseInt(data.data_emissao.slice(0, 4)) : null
+  if (anoEmissao && data.premio_liquido) {
+    await atualizarSnapshotEmissao(corretora_id, anoEmissao, Number(data.premio_liquido))
+  }
+
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -49,6 +57,15 @@ export async function PUT(req: NextRequest) {
   const corretora_id = await getCorretoraId(supabase)
   if (!corretora_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id, ...body } = await req.json()
+
+  // Busca valores antigos para calcular delta no snapshot
+  const { data: antiga } = await supabase
+    .from('apolices')
+    .select('premio_liquido, data_emissao')
+    .eq('id', id)
+    .eq('corretora_id', corretora_id)
+    .single()
+
   const { data, error } = await supabase.from('apolices').update(body).eq('id', id).eq('corretora_id', corretora_id).select().single()
   if (error) {
     if (error.code === '23505') {
@@ -56,6 +73,23 @@ export async function PUT(req: NextRequest) {
     }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Atualiza snapshot se prêmio ou ano de emissão mudou
+  if (antiga && (body.premio_liquido !== undefined || body.data_emissao !== undefined)) {
+    const anoAntigo = antiga.data_emissao ? parseInt(antiga.data_emissao.slice(0, 4)) : null
+    const anoNovo = data.data_emissao ? parseInt(data.data_emissao.slice(0, 4)) : null
+    const premioAntigo = Number(antiga.premio_liquido) || 0
+    const premioNovo = Number(data.premio_liquido) || 0
+
+    if (anoAntigo && anoNovo && anoAntigo === anoNovo) {
+      const delta = premioNovo - premioAntigo
+      if (delta !== 0) await atualizarSnapshotEmissao(corretora_id, anoAntigo, delta)
+    } else {
+      if (anoAntigo) await atualizarSnapshotEmissao(corretora_id, anoAntigo, -premioAntigo)
+      if (anoNovo) await atualizarSnapshotEmissao(corretora_id, anoNovo, premioNovo)
+    }
+  }
+
   return NextResponse.json(data)
 }
 
@@ -68,7 +102,7 @@ export async function DELETE(req: NextRequest) {
 
   const { data: apolice, error: fetchError } = await supabase
     .from('apolices')
-    .select('cliente_id')
+    .select('cliente_id, premio_liquido, data_emissao')
     .eq('id', id)
     .eq('corretora_id', corretora_id)
     .single()
@@ -83,6 +117,12 @@ export async function DELETE(req: NextRequest) {
 
   const { error } = await supabase.from('apolices').delete().eq('id', id).eq('corretora_id', corretora_id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Decrementa snapshot — exclusão direta (diferente de enviar ao histórico)
+  const anoEmissao = apolice.data_emissao ? parseInt(apolice.data_emissao.slice(0, 4)) : null
+  if (anoEmissao && apolice.premio_liquido) {
+    await atualizarSnapshotEmissao(corretora_id, anoEmissao, -Number(apolice.premio_liquido))
+  }
 
   const { count } = await supabase
     .from('apolices')

@@ -74,20 +74,13 @@ export default async function DashboardPage() {
   const anoAtualNum = hojeData.getFullYear()
   const anoAnteriorNum = anoAtualNum - 1
 
-  const { data: apolicesEmissaoAnos } = await supabase
-    .from('apolices')
-    .select('data_emissao, premio_liquido')
-    .gte('data_emissao', `${anoAnteriorNum}-01-01`)
-    .lte('data_emissao', `${anoAtualNum}-12-31`)
+  const { data: snapshotEmissao } = await supabase
+    .from('emissao_anual')
+    .select('ano, total_premio_liquido')
+    .in('ano', [anoAnteriorNum, anoAtualNum])
 
-  const totalPremioPorAno = new Map<number, number>()
-  apolicesEmissaoAnos?.forEach((a) => {
-    if (!a.data_emissao) return
-    const ano = parseInt(a.data_emissao.slice(0, 4))
-    totalPremioPorAno.set(ano, (totalPremioPorAno.get(ano) ?? 0) + Number(a.premio_liquido))
-  })
-  const totalEmissaoAnoAnterior = totalPremioPorAno.get(anoAnteriorNum) ?? 0
-  const totalEmissaoAnoAtual = totalPremioPorAno.get(anoAtualNum) ?? 0
+  const totalEmissaoAnoAnterior = Number(snapshotEmissao?.find(r => r.ano === anoAnteriorNum)?.total_premio_liquido ?? 0)
+  const totalEmissaoAnoAtual = Number(snapshotEmissao?.find(r => r.ano === anoAtualNum)?.total_premio_liquido ?? 0)
   const maiorTotalEmissao = Math.max(totalEmissaoAnoAnterior, totalEmissaoAnoAtual, 1)
   const variacaoEmissaoPercentual = totalEmissaoAnoAnterior > 0
     ? ((totalEmissaoAnoAtual - totalEmissaoAnoAnterior) / totalEmissaoAnoAnterior) * 100
