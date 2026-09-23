@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDropzone } from 'react-dropzone'
 import { FileUp, Loader2, Plus, X, Download, Paperclip } from 'lucide-react'
@@ -86,6 +86,8 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [extracting, setExtracting] = useState(false)
   const [loading, setLoading] = useState(false)
+  // Upload do PDF começa em paralelo com a extração para economizar tempo no "Salvar"
+  const pdfUploadRef = useRef<Promise<string | null> | null>(null)
   const [pendingCliente, setPendingCliente] = useState<PendingCliente | null>(null)
   const [documentosAtuais, setDocumentosAtuais] = useState<DocumentoApolice[]>(documentosExistentes ?? [])
   const [documentosPendentes, setDocumentosPendentes] = useState<DocumentoPendente[]>([])
@@ -100,6 +102,21 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
     }
     setPdfFile(file)
     setExtracting(true)
+
+    // Inicia upload do PDF para o storage imediatamente, em paralelo com a extração de dados
+    pdfUploadRef.current = (async () => {
+      try {
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await fetch('/api/apolices/upload', { method: 'POST', body: fd })
+        if (!res.ok) return null
+        const data = await res.json()
+        return data.url as string
+      } catch {
+        return null
+      }
+    })()
+
     const doExtract = async () => {
       const allTipos = Array.from(new Set([
         ...TIPOS_SEGURO,
@@ -268,17 +285,22 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
 
       let pdfUrl = apolice?.pdf_url
       if (pdfFile) {
-        const formData = new FormData()
-        formData.append('file', pdfFile)
-        const uploadRes = await fetch('/api/apolices/upload', { method: 'POST', body: formData })
-        const uploadData = await uploadRes.json()
-        if (!uploadRes.ok) {
-          showToast(`Erro no upload do PDF: ${uploadData.error ?? 'falha desconhecida'}`, 'error')
-          await desfazerCriacaoCliente()
-          setLoading(false)
-          return
+        // Aguarda o upload já iniciado no onDrop; se falhou, tenta novamente
+        let uploadedUrl = pdfUploadRef.current ? await pdfUploadRef.current : null
+        if (!uploadedUrl) {
+          const formData = new FormData()
+          formData.append('file', pdfFile)
+          const uploadRes = await fetch('/api/apolices/upload', { method: 'POST', body: formData })
+          const uploadData = await uploadRes.json()
+          if (!uploadRes.ok) {
+            showToast(`Erro no upload do PDF: ${uploadData.error ?? 'falha desconhecida'}`, 'error')
+            await desfazerCriacaoCliente()
+            setLoading(false)
+            return
+          }
+          uploadedUrl = uploadData.url
         }
-        pdfUrl = uploadData.url
+        pdfUrl = uploadedUrl
       }
 
       const method = isEdit ? 'PUT' : 'POST'
@@ -304,14 +326,15 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         const apoliceIdFinal = isEdit ? apolice?.id : data.id
 
         if (apoliceIdFinal && documentosPendentes.length) {
-          for (const doc of documentosPendentes) {
+          // Uploads de documentos em paralelo
+          await Promise.all(documentosPendentes.map(async (doc) => {
             const formDataDoc = new FormData()
             formDataDoc.append('file', doc.file)
             const uploadDocRes = await fetch('/api/apolices/upload', { method: 'POST', body: formDataDoc })
             const uploadDocData = await uploadDocRes.json()
             if (!uploadDocRes.ok) {
               showToast(`Erro no upload do documento "${doc.nomeDocumento}": ${uploadDocData.error ?? 'falha desconhecida'}`, 'error')
-              continue
+              return
             }
             await fetch('/api/documentos-apolice', {
               method: 'POST',
@@ -323,7 +346,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
                 documento_url: uploadDocData.url,
               }),
             })
-          }
+          }))
         }
 
         showToast(isEdit ? 'Apólice atualizada!' : 'Apólice salva!', 'success')

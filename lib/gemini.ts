@@ -2,8 +2,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
 
-const MODEL_FALLBACKS = ['gemini-flash-latest', 'gemini-flash-lite-latest']
-const MAX_RETRIES_PER_MODEL = 3
+// Dados-chave da apólice estão nas primeiras páginas. Limitar o texto
+// reduz drasticamente os tokens enviados e a latência da resposta da IA.
+const TEXT_LIMIT = 8000
+const MODEL_FALLBACKS = ['gemini-2.0-flash-lite', 'gemini-1.5-flash']
+const MAX_RETRIES_PER_MODEL = 2
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -15,6 +18,7 @@ function isRetryable(err: unknown) {
 }
 
 async function extractWithText(text: string, prompt: string): Promise<Record<string, unknown>> {
+  const truncated = text.length > TEXT_LIMIT ? text.slice(0, TEXT_LIMIT) : text
   let lastError: unknown
 
   for (const modelName of MODEL_FALLBACKS) {
@@ -23,7 +27,7 @@ async function extractWithText(text: string, prompt: string): Promise<Record<str
     for (let attempt = 1; attempt <= MAX_RETRIES_PER_MODEL; attempt++) {
       try {
         const result = await model.generateContent([
-          { text: `${prompt}\n\n--- TEXTO DO DOCUMENTO ---\n${text}` },
+          { text: `${prompt}\n\n--- TEXTO DO DOCUMENTO ---\n${truncated}` },
         ])
 
         const raw = result.response.text()
@@ -33,7 +37,7 @@ async function extractWithText(text: string, prompt: string): Promise<Record<str
       } catch (err) {
         lastError = err
         if (isRetryable(err) && attempt < MAX_RETRIES_PER_MODEL) {
-          await sleep(1500 * attempt)
+          await sleep(500 * attempt)
           continue
         }
         break
