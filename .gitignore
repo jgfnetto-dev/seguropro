@@ -35,3 +35,6 @@ dev-server.log
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pdfjs-dist worker (gerado automaticamente pelo next.config.mjs)
+/public/pdf.worker.min.mjs

@@ -126,7 +126,17 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         ...seguradoras.flatMap(s => s.ramos ?? []),
       ]))
       const formDataPdf = new FormData()
-      formDataPdf.append('file', file)
+
+      // Extrai texto no browser — envia apenas texto (KB) em vez do PDF binário (MB)
+      try {
+        const { extractTextFromPdf } = await import('@/lib/pdf-text-client')
+        const pdfText = await extractTextFromPdf(file)
+        formDataPdf.append('text', pdfText)
+      } catch {
+        // Fallback: server faz a extração
+        formDataPdf.append('file', file)
+      }
+
       formDataPdf.append('tipos', JSON.stringify(allTipos))
       try {
         const res = await fetch('/api/pdf-extract', {
@@ -245,9 +255,6 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
     if (!numeroApolice) { showToast('Informe o número da apólice.', 'error'); return }
     if (!dataInicio || !dataFim) { showToast('Informe a vigência (data início e fim).', 'error'); return }
 
-    // Cancela extração em andamento — o upload já completou no pdfUploadRef
-    extractionAbortRef.current?.abort()
-
     setLoading(true)
 
     let resolvedClienteId = clienteId
@@ -311,7 +318,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
           }
           uploadedUrl = uploadData.url
         }
-        pdfUrl = uploadedUrl
+        pdfUrl = uploadedUrl ?? undefined
       }
 
       const method = isEdit ? 'PUT' : 'POST'
@@ -396,9 +403,9 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
           </div>
 
           {extracting && (
-            <div className="flex items-center gap-3 rounded-lg bg-secondary/10 border border-secondary/30 px-4 py-3 shadow-card">
-              <Loader2 className="w-4 h-4 animate-spin text-secondary shrink-0" />
-              <span className="text-body-sm text-secondary">Extraindo dados do PDF em segundo plano — você já pode preencher ou salvar.</span>
+            <div className="flex items-center justify-center gap-3 rounded-lg bg-secondary/10 border border-secondary/30 px-6 py-4 shadow-card">
+              <Loader2 className="w-5 h-5 animate-spin text-secondary shrink-0" />
+              <span className="text-h3 text-secondary">Extraindo informações do PDF automaticamente...</span>
             </div>
           )}
 
@@ -593,8 +600,8 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
             <p className="text-xs text-on-surface-variant mt-3">Máximo 10MB • Apenas PDF</p>
           </div>
 
-          <Button form="apolice-form" type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Salvando...' : 'Salvar Apólice'}
+          <Button form="apolice-form" type="submit" className="w-full" disabled={loading || extracting}>
+            {loading ? 'Salvando...' : extracting ? 'Aguardando extração...' : 'Salvar Apólice'}
           </Button>
           <Button type="button" variant="outline" className="w-full" onClick={() => router.back()}>Cancelar</Button>
 
