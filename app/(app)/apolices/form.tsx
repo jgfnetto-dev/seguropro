@@ -86,8 +86,8 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [extracting, setExtracting] = useState(false)
   const [loading, setLoading] = useState(false)
-  // Upload do PDF começa em paralelo com a extração para economizar tempo no "Salvar"
   const pdfUploadRef = useRef<Promise<string | null> | null>(null)
+  const extractionAbortRef = useRef<AbortController | null>(null)
   const [pendingCliente, setPendingCliente] = useState<PendingCliente | null>(null)
   const [documentosAtuais, setDocumentosAtuais] = useState<DocumentoApolice[]>(documentosExistentes ?? [])
   const [documentosPendentes, setDocumentosPendentes] = useState<DocumentoPendente[]>([])
@@ -103,7 +103,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
     setPdfFile(file)
     setExtracting(true)
 
-    // Inicia upload do PDF para o storage imediatamente, em paralelo com a extração de dados
+    // Upload para storage e extração rodam em paralelo — PDF enviado apenas uma vez para cada endpoint
     pdfUploadRef.current = (async () => {
       try {
         const fd = new FormData()
@@ -118,6 +118,9 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
     })()
 
     const doExtract = async () => {
+      const abortCtrl = new AbortController()
+      extractionAbortRef.current = abortCtrl
+
       const allTipos = Array.from(new Set([
         ...TIPOS_SEGURO,
         ...seguradoras.flatMap(s => s.ramos ?? []),
@@ -129,6 +132,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         const res = await fetch('/api/pdf-extract', {
           method: 'POST',
           body: formDataPdf,
+          signal: abortCtrl.signal,
         })
         const data = await res.json()
         if (!res.ok) {
@@ -191,9 +195,13 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
 
         showToast('Dados extraídos com sucesso!', 'success')
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return // cancelado pelo usuário ao salvar
+        }
         showToast(`Erro na extração do PDF: ${err instanceof Error ? err.message : 'desconhecido'}`, 'error')
       } finally {
         setExtracting(false)
+        extractionAbortRef.current = null
       }
     }
     doExtract()
@@ -236,6 +244,9 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
     if (!tipoSeguro) { showToast('Selecione o tipo de seguro.', 'error'); return }
     if (!numeroApolice) { showToast('Informe o número da apólice.', 'error'); return }
     if (!dataInicio || !dataFim) { showToast('Informe a vigência (data início e fim).', 'error'); return }
+
+    // Cancela extração em andamento — o upload já completou no pdfUploadRef
+    extractionAbortRef.current?.abort()
 
     setLoading(true)
 
@@ -385,9 +396,9 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
           </div>
 
           {extracting && (
-            <div className="flex items-center justify-center gap-3 rounded-lg bg-secondary/10 border border-secondary/30 px-6 py-4 shadow-card">
-              <Loader2 className="w-5 h-5 animate-spin text-secondary shrink-0" />
-              <span className="text-h3 text-secondary">Extraindo informações do PDF automaticamente...</span>
+            <div className="flex items-center gap-3 rounded-lg bg-secondary/10 border border-secondary/30 px-4 py-3 shadow-card">
+              <Loader2 className="w-4 h-4 animate-spin text-secondary shrink-0" />
+              <span className="text-body-sm text-secondary">Extraindo dados do PDF em segundo plano — você já pode preencher ou salvar.</span>
             </div>
           )}
 
@@ -582,8 +593,8 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
             <p className="text-xs text-on-surface-variant mt-3">Máximo 10MB • Apenas PDF</p>
           </div>
 
-          <Button form="apolice-form" type="submit" className="w-full" disabled={loading || extracting}>
-            {loading ? 'Salvando...' : extracting ? 'Aguardando extração...' : 'Salvar Apólice'}
+          <Button form="apolice-form" type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar Apólice'}
           </Button>
           <Button type="button" variant="outline" className="w-full" onClick={() => router.back()}>Cancelar</Button>
 
