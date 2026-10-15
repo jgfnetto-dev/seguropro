@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Dados inválidos.' }, { status: 400 })
 
-  const { destination, via, q, mes, ano, sort, dir } = body
+  const { destination, via, q, mes, ano, tipo, sort, dir } = body
 
   if (!destination?.trim() || !via) {
     return NextResponse.json({ error: 'Informe o destino.' }, { status: 400 })
@@ -43,6 +43,10 @@ export async function POST(req: NextRequest) {
     query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
   }
 
+  if (tipo) {
+    query = query.eq('tipo_seguro', tipo)
+  }
+
   const { data: apolices, error } = await query
   if (error) return NextResponse.json({ error: 'Erro ao buscar apólices.' }, { status: 500 })
 
@@ -57,6 +61,7 @@ export async function POST(req: NextRequest) {
 
   const parts: string[] = []
   if (q) parts.push(`Busca: "${q}"`)
+  if (tipo) parts.push(`Tipo: ${tipo}`)
   if (mes && ano) {
     const nomeMes = MESES.find((m) => m.value === mes)?.label ?? mes
     parts.push(`Emissão: ${nomeMes}/${ano}`)

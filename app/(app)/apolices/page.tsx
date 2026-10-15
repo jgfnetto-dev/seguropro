@@ -13,7 +13,7 @@ import { ExportarApolicesButton } from './exportar-button'
 
 type SortField = 'cliente' | 'seguradora' | 'data_fim'
 
-export default async function ApolicesPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string; sort?: string; dir?: string } }) {
+export default async function ApolicesPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string; tipo?: string; sort?: string; dir?: string } }) {
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/auth/login')
@@ -51,9 +51,14 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
   }
 
-  const [{ data: apolices }, { data: todasApolices }, { data: endossos }, { data: documentos }] = await Promise.all([
+  if (searchParams.tipo) {
+    query = query.eq('tipo_seguro', searchParams.tipo)
+  }
+
+  const [{ data: apolices }, { data: todasApolices }, { data: tiposData }, { data: endossos }, { data: documentos }] = await Promise.all([
     query,
     supabase.from('apolices').select('cliente_id'),
+    supabase.from('apolices').select('tipo_seguro').not('tipo_seguro', 'is', null),
     supabase
       .from('endossos')
       .select('id, apolice_id, numero_endosso, tipo_endosso, segurado, data_emissao, data_inicio, data_fim, veiculo, ano, modelo, placa, chassi, pdf_url')
@@ -63,6 +68,10 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
       .select('id, apolice_id, nome_documento, documento_url')
       .order('criado_em', { ascending: false }),
   ])
+
+  const tiposDisponiveis = Array.from(new Set(tiposData?.map((t) => t.tipo_seguro).filter(Boolean) ?? [])).sort((a, b) =>
+    a.localeCompare(b, 'pt-BR')
+  )
 
   if (sort === 'cliente' || sort === 'seguradora') {
     apolices?.sort((a, b) => {
@@ -106,6 +115,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
     if (searchParams.q) params.set('q', searchParams.q)
     if (searchParams.mes) params.set('mes', searchParams.mes)
     if (searchParams.ano) params.set('ano', searchParams.ano)
+    if (searchParams.tipo) params.set('tipo', searchParams.tipo)
     params.set('sort', field)
     params.set('dir', sort === field && dir === 'asc' ? 'desc' : 'asc')
     return `/apolices?${params.toString()}`
@@ -133,7 +143,7 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
           <p className="text-body-sm text-on-surface-variant mt-1">Gerencie todas as apólices cadastradas.</p>
         </div>
         <div className="flex items-center gap-2">
-          <ExportarApolicesButton filtros={{ q: searchParams.q, mes: searchParams.mes, ano: searchParams.ano, sort: searchParams.sort, dir: searchParams.dir }} />
+          <ExportarApolicesButton filtros={{ q: searchParams.q, mes: searchParams.mes, ano: searchParams.ano, tipo: searchParams.tipo, sort: searchParams.sort, dir: searchParams.dir }} />
           <Link href="/apolices/novo">
             <Button className="gap-2"><Plus className="w-4 h-4" /> Nova Apólice</Button>
           </Link>
@@ -151,6 +161,14 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
           />
         </div>
         <select
+          name="tipo"
+          defaultValue={searchParams.tipo ?? ''}
+          className="h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">Tipo de seguro</option>
+          {tiposDisponiveis.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <select
           name="mes"
           defaultValue={searchParams.mes ?? ''}
           className="h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
@@ -167,8 +185,8 @@ export default async function ApolicesPage({ searchParams }: { searchParams: { q
           {anosDisponiveis().map((ano) => <option key={ano} value={ano}>{ano}</option>)}
         </select>
         <Button type="submit" variant="outline">Filtrar</Button>
-        {(searchParams.mes || searchParams.ano) && (
-          <Link href="/apolices"><Button type="button" variant="ghost">Limpar filtro</Button></Link>
+        {(searchParams.q || searchParams.tipo || searchParams.mes || searchParams.ano) && (
+          <Link href="/apolices"><Button type="button" variant="ghost">Limpar filtros</Button></Link>
         )}
       </form>
 

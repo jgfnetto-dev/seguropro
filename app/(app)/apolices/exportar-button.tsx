@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button'
 
 interface Props {
-  filtros: { q?: string; mes?: string; ano?: string; sort?: string; dir?: string }
+  filtros: { q?: string; mes?: string; ano?: string; tipo?: string; sort?: string; dir?: string }
 }
 
 function celularMask(v: string) {
@@ -51,7 +51,7 @@ export function ExportarApolicesButton({ filtros }: Props) {
     }
   }
 
-  const temFiltro = filtros.q || filtros.mes || filtros.ano
+  const temFiltro = filtros.q || filtros.tipo || filtros.mes || filtros.ano
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true) }}>
