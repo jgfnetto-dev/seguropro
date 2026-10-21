@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, Heart, ChevronDown, ContactRound, Calculator, Home } from 'lucide-react'
+import { Shield, Search, Bell, User, LogOut, LayoutDashboard, Users, FileText, RefreshCw, Building2, UserCog, HandCoins, Archive, ListChecks, Car, Heart, ChevronDown, ContactRound } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { cn } from '@/lib/utils'
 import { APP_VERSION } from '@/lib/version'
@@ -22,11 +22,6 @@ const bottomNavLinks = [
   { href: '/usuarios', label: 'Usuários', icon: UserCog },
 ]
 
-const simuladorSubItems = [
-  { href: '/simulador-consorcio/automovel', label: 'Simula Automóvel/Pesados', icon: Car },
-  { href: '/simulador-consorcio/imovel', label: 'Simula Imóvel', icon: Home },
-]
-
 const leadsSubItems = [
   { href: '/leads/auto', label: 'Automóvel', icon: Car },
   { href: '/leads/saude', label: 'Plano de Saúde', icon: Heart },
@@ -36,7 +31,6 @@ export function Sidebar({ userName }: { userName?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const [leadsOpen, setLeadsOpen] = useState(() => !!pathname?.startsWith('/leads'))
-  const [simuladorOpen, setSimuladorOpen] = useState(() => !!pathname?.startsWith('/simulador-consorcio'))
 
   async function handleLogout() {
     const supabase = getSupabaseBrowser()
@@ -46,7 +40,6 @@ export function Sidebar({ userName }: { userName?: string }) {
   }
 
   const leadsActive = pathname?.startsWith('/leads')
-  const simuladorActive = pathname?.startsWith('/simulador-consorcio')
 
   function SubMenu({
     icon: Icon, label, open, onToggle, active, items,
@@ -126,16 +119,6 @@ export function Sidebar({ userName }: { userName?: string }) {
               </Link>
             )
           })}
-
-          {/* Simulador de Consórcio group */}
-          <SubMenu
-            icon={Calculator}
-            label="Simulador Consórcio"
-            open={simuladorOpen}
-            onToggle={() => setSimuladorOpen(o => !o)}
-            active={!!simuladorActive}
-            items={simuladorSubItems}
-          />
 
           {/* Novos Leads group */}
           <SubMenu
