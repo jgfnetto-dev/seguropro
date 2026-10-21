@@ -40,7 +40,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
     const inicio = `${ano}-${String(mes).padStart(2, '0')}-01`
     const ultimoDia = new Date(ano, mes, 0).getDate()
     const fim = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`
-    query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
+    query = query.gte('data_inicio', inicio).lte('data_inicio', fim)
   }
 
   const [{ data: apolices }, { data: conciliacoes }] = await Promise.all([
@@ -91,7 +91,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
           defaultValue={searchParams.mes ?? ''}
           className="h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="">Mês de emissão</option>
+          <option value="">Mês Vigência</option>
           {MESES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
         <select
