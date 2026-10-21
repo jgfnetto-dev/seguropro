@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const m = parseInt(mes), a = parseInt(ano)
     const inicio = `${a}-${String(m).padStart(2, '0')}-01`
     const fim = `${a}-${String(m).padStart(2, '0')}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`
-    query = query.gte('data_emissao', inicio).lte('data_emissao', fim)
+    query = query.gte('data_inicio', inicio).lte('data_inicio', fim)
   }
 
   if (tipo) {
