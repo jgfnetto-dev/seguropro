@@ -1,16 +1,12 @@
 'use client'
+
 import { useState } from 'react'
 import { Printer, Loader2, CheckCircle, AlertCircle, Smartphone, Mail } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { MESES, anosDisponiveis } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface Props {
-  mesAtual: number
-  anoAtual: number
-  emailUsuario?: string
+  filtros: { q?: string; mes?: string; ano?: string }
 }
 
 function celularMask(v: string) {
@@ -21,12 +17,8 @@ function celularMask(v: string) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
 }
 
-export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }: Props) {
+export function RelatorioConciliacaoButton({ filtros }: Props) {
   const [open, setOpen] = useState(false)
-  const [mesInicio, setMesInicio] = useState(String(mesAtual))
-  const [anoInicio, setAnoInicio] = useState(String(anoAtual))
-  const [mesFim, setMesFim] = useState(String(mesAtual))
-  const [anoFim, setAnoFim] = useState(String(anoAtual))
   const [via, setVia] = useState<'whatsapp' | 'email'>('whatsapp')
   const [destination, setDestination] = useState('')
   const [loading, setLoading] = useState(false)
@@ -39,11 +31,6 @@ export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }:
     setVia('whatsapp')
   }
 
-  function handleViaChange(newVia: 'whatsapp' | 'email') {
-    setVia(newVia)
-    setDestination(newVia === 'email' ? (emailUsuario ?? '') : '')
-  }
-
   async function handleSend() {
     if (!destination.trim()) return
     setLoading(true)
@@ -52,14 +39,7 @@ export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }:
       const res = await fetch('/api/conciliacao/relatorio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mesInicio: parseInt(mesInicio),
-          anoInicio: parseInt(anoInicio),
-          mesFim: parseInt(mesFim),
-          anoFim: parseInt(anoFim),
-          canal: via,
-          destination: destination.trim(),
-        }),
+        body: JSON.stringify({ destination: destination.trim(), canal: via, ...filtros }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Erro ao enviar.')
@@ -71,11 +51,13 @@ export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }:
     }
   }
 
+  const temFiltro = filtros.q || filtros.mes || filtros.ano
+
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true) }}>
       <DialogTrigger asChild>
         <button
-          title="Gerar relatório de conciliação em PDF"
+          title="Exportar conciliação como PDF"
           className="flex items-center justify-center w-9 h-9 rounded border border-outline-variant/40 text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
         >
           <Printer className="w-4 h-4" />
@@ -84,7 +66,7 @@ export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }:
 
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Relatório de Conciliação (PDF)</DialogTitle>
+          <DialogTitle>Exportar Conciliação como PDF</DialogTitle>
         </DialogHeader>
 
         {result ? (
@@ -100,53 +82,17 @@ export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }:
           </div>
         ) : (
           <div className="space-y-5">
-            {/* Período */}
-            <div className="space-y-2">
-              <Label>Período</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <p className="text-xs text-on-surface-variant">De</p>
-                  <div className="flex gap-2">
-                    <Select value={mesInicio} onValueChange={setMesInicio}>
-                      <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
-                      <SelectContent>
-                        {MESES.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Select value={anoInicio} onValueChange={setAnoInicio}>
-                      <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
-                      <SelectContent>
-                        {anosDisponiveis().map((a) => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-on-surface-variant">Até</p>
-                  <div className="flex gap-2">
-                    <Select value={mesFim} onValueChange={setMesFim}>
-                      <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
-                      <SelectContent>
-                        {MESES.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Select value={anoFim} onValueChange={setAnoFim}>
-                      <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
-                      <SelectContent>
-                        {anosDisponiveis().map((a) => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+            {temFiltro && (
+              <div className="bg-surface-container rounded-lg px-3 py-2 text-body-sm text-on-surface-variant">
+                O PDF respeitará o filtro aplicado na tela.
               </div>
-            </div>
+            )}
 
-            {/* Canal */}
             <div className="space-y-2">
               <p className="text-body-sm font-medium text-on-surface">Enviar por</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => handleViaChange('whatsapp')}
+                  onClick={() => { setVia('whatsapp'); setDestination('') }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-body-sm font-medium transition-colors ${
                     via === 'whatsapp'
                       ? 'bg-primary/10 border-primary text-primary'
@@ -156,7 +102,7 @@ export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }:
                   <Smartphone className="w-4 h-4" /> WhatsApp
                 </button>
                 <button
-                  onClick={() => handleViaChange('email')}
+                  onClick={() => { setVia('email'); setDestination('') }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-body-sm font-medium transition-colors ${
                     via === 'email'
                       ? 'bg-primary/10 border-primary text-primary'
@@ -168,7 +114,6 @@ export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }:
               </div>
             </div>
 
-            {/* Destino */}
             <div className="space-y-1.5">
               <label className="label-caps text-on-surface-variant block">
                 {via === 'whatsapp' ? 'Número do WhatsApp' : 'Endereço de e-mail'}

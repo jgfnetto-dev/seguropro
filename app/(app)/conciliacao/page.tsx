@@ -60,8 +60,6 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
     historicoPorApolice.set(c.apolice_id, lista)
   })
 
-  const hojeConciliacao = new Date()
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -70,9 +68,7 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
           <p className="text-body-sm text-on-surface-variant mt-1">Acompanhe e concilie as comissões das apólices.</p>
         </div>
         <RelatorioConciliacaoButton
-          mesAtual={hojeConciliacao.getMonth() + 1}
-          anoAtual={hojeConciliacao.getFullYear()}
-          emailUsuario={session.user.email}
+          filtros={{ q: searchParams.q, mes: searchParams.mes, ano: searchParams.ano }}
         />
       </div>
 

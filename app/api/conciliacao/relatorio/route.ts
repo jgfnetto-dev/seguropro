@@ -6,35 +6,45 @@ import { gerarPdfConciliacao } from '@/lib/pdf'
 import { formatCpfCnpj } from '@/lib/utils'
 import { getAdminWhatsApp } from '@/lib/whatsapp-admin'
 
-const NOMES_MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
-
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { mesInicio, anoInicio, mesFim, anoFim, canal, destination } = await req.json()
-  if (!mesInicio || !anoInicio || !mesFim || !anoFim || !canal || !destination?.trim()) {
-    return NextResponse.json({ error: 'Informe o período, o canal de envio e o destino.' }, { status: 400 })
+  const { canal, destination, q, mes, ano } = await req.json()
+  if (!canal || !destination?.trim()) {
+    return NextResponse.json({ error: 'Informe o canal de envio e o destino.' }, { status: 400 })
   }
 
-  const inicio = `${anoInicio}-${String(mesInicio).padStart(2, '0')}-01`
-  const ultimoDiaFim = new Date(anoFim, mesFim, 0).getDate()
-  const fim = `${anoFim}-${String(mesFim).padStart(2, '0')}-${String(ultimoDiaFim).padStart(2, '0')}`
-
-  if (fim < inicio) {
-    return NextResponse.json({ error: 'O período final não pode ser anterior ao período inicial.' }, { status: 400 })
-  }
-
-  const { data: apolices } = await supabase
+  let query = supabase
     .from('apolices')
     .select('*, cliente:clientes(segurado, cpf_cnpj)')
-    .gte('data_inicio', inicio)
-    .lte('data_inicio', fim)
     .order('data_inicio', { ascending: true })
 
+  if (q) {
+    const { data: clientesMatch } = await supabase
+      .from('clientes')
+      .select('id')
+      .ilike('segurado', `%${q}%`)
+    const clienteIds = clientesMatch?.map((c: { id: string }) => c.id) ?? []
+    query = clienteIds.length
+      ? query.or(`numero_apolice.ilike.%${q}%,cliente_id.in.(${clienteIds.join(',')})`)
+      : query.ilike('numero_apolice', `%${q}%`)
+  }
+
+  if (mes && ano) {
+    const m = parseInt(mes)
+    const a = parseInt(ano)
+    const inicio = `${a}-${String(m).padStart(2, '0')}-01`
+    const ultimoDia = new Date(a, m, 0).getDate()
+    const fim = `${a}-${String(m).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`
+    query = query.gte('data_inicio', inicio).lte('data_inicio', fim)
+  }
+
+  const { data: apolices } = await query
+
   if (!apolices?.length) {
-    return NextResponse.json({ error: 'Nenhuma apólice com início de vigência nesse período.' }, { status: 400 })
+    return NextResponse.json({ error: 'Nenhuma apólice encontrada com o filtro aplicado.' }, { status: 400 })
   }
 
   const apoliceIds = apolices.map((a) => a.id)
@@ -51,9 +61,15 @@ export async function POST(req: NextRequest) {
     conciliacoesPorApolice.set(c.apolice_id, lista)
   })
 
-  const labelPeriodo = mesInicio === mesFim && anoInicio === anoFim
-    ? `${NOMES_MESES[mesInicio - 1]}/${anoInicio}`
-    : `${NOMES_MESES[mesInicio - 1]}/${anoInicio} a ${NOMES_MESES[mesFim - 1]}/${anoFim}`
+  const labelFiltro = (() => {
+    const parts: string[] = []
+    if (q) parts.push(`Busca: "${q}"`)
+    if (mes && ano) {
+      const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+      parts.push(`${MESES[parseInt(mes) - 1]}/${ano}`)
+    }
+    return parts.length ? parts.join(' | ') : 'Todas as apólices'
+  })()
 
   const apolicesParaPdf = apolices.map((a) => ({
     numero_apolice: a.numero_apolice,
@@ -71,12 +87,12 @@ export async function POST(req: NextRequest) {
   try {
     const admin = await getAdminWhatsApp(supabase, session.user.id)
 
-    const pdfBuffer = await gerarPdfConciliacao(apolicesParaPdf, labelPeriodo)
+    const pdfBuffer = await gerarPdfConciliacao(apolicesParaPdf, labelFiltro)
     const base64 = pdfBuffer.toString('base64')
-    const nomeArquivo = `conciliacao-${labelPeriodo.replace(/\//g, '-').replace(/\s/g, '')}.pdf`
+    const nomeArquivo = `conciliacao-${new Date().toISOString().slice(0, 10)}.pdf`
 
     if (canal === 'whatsapp') {
-      const caption = `📊 *Relatório de Conciliação — ${labelPeriodo}*\nTotal: ${apolices.length} apólice(s).`
+      const caption = `📊 *Relatório de Conciliação — ${labelFiltro}*\nTotal: ${apolices.length} apólice(s).`
       await sendWhatsAppDocument(destination.trim(), base64, nomeArquivo, caption, admin.instance)
       return NextResponse.json({ success: true, canal: 'whatsapp', total: apolices.length })
     }
@@ -85,8 +101,8 @@ export async function POST(req: NextRequest) {
       const adminFrom = buildAdminFrom(admin.nome, admin.email)
       await sendEmail({
         to: destination.trim(),
-        subject: `Relatório de Conciliação — ${labelPeriodo}`,
-        html: `<p>Olá,</p><p>Segue em anexo o relatório de conciliação de comissões com início de vigência no período de <strong>${labelPeriodo}</strong>.</p><p>Total: ${apolices.length} apólice(s).</p><p>SeguroPro</p>`,
+        subject: `Relatório de Conciliação — ${labelFiltro}`,
+        html: `<p>Olá,</p><p>Segue em anexo o relatório de conciliação. Filtro: <strong>${labelFiltro}</strong>.</p><p>Total: ${apolices.length} apólice(s).</p><p>SeguroPro</p>`,
         from: adminFrom ?? undefined,
         replyTo: admin.email ?? undefined,
         attachmentBase64: base64,
