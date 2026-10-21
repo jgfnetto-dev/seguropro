@@ -13,9 +13,9 @@ export async function POST(req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { mesInicio, anoInicio, mesFim, anoFim, canal, email } = await req.json()
-  if (!mesInicio || !anoInicio || !mesFim || !anoFim || !canal) {
-    return NextResponse.json({ error: 'Informe o período (mês/ano início e fim) e o canal de envio.' }, { status: 400 })
+  const { mesInicio, anoInicio, mesFim, anoFim, canal, destination } = await req.json()
+  if (!mesInicio || !anoInicio || !mesFim || !anoFim || !canal || !destination?.trim()) {
+    return NextResponse.json({ error: 'Informe o período, o canal de envio e o destino.' }, { status: 400 })
   }
 
   const inicio = `${anoInicio}-${String(mesInicio).padStart(2, '0')}-01`
@@ -29,12 +29,12 @@ export async function POST(req: NextRequest) {
   const { data: apolices } = await supabase
     .from('apolices')
     .select('*, cliente:clientes(segurado, cpf_cnpj)')
-    .gte('data_emissao', inicio)
-    .lte('data_emissao', fim)
-    .order('data_emissao', { ascending: true })
+    .gte('data_inicio', inicio)
+    .lte('data_inicio', fim)
+    .order('data_inicio', { ascending: true })
 
   if (!apolices?.length) {
-    return NextResponse.json({ error: 'Nenhuma apólice com emissão nesse período.' }, { status: 400 })
+    return NextResponse.json({ error: 'Nenhuma apólice com início de vigência nesse período.' }, { status: 400 })
   }
 
   const apoliceIds = apolices.map((a) => a.id)
@@ -76,24 +76,17 @@ export async function POST(req: NextRequest) {
     const nomeArquivo = `conciliacao-${labelPeriodo.replace(/\//g, '-').replace(/\s/g, '')}.pdf`
 
     if (canal === 'whatsapp') {
-      if (!admin.telefone) {
-        return NextResponse.json({ error: 'Telefone WhatsApp não configurado para o administrador da corretora.' }, { status: 400 })
-      }
       const caption = `📊 *Relatório de Conciliação — ${labelPeriodo}*\nTotal: ${apolices.length} apólice(s).`
-      await sendWhatsAppDocument(admin.telefone, base64, nomeArquivo, caption, admin.instance)
+      await sendWhatsAppDocument(destination.trim(), base64, nomeArquivo, caption, admin.instance)
       return NextResponse.json({ success: true, canal: 'whatsapp', total: apolices.length })
     }
 
     if (canal === 'email') {
-      const destinatario = email || session.user.email
-      if (!destinatario) {
-        return NextResponse.json({ error: 'Informe um e-mail de destino.' }, { status: 400 })
-      }
       const adminFrom = buildAdminFrom(admin.nome, admin.email)
       await sendEmail({
-        to: destinatario,
+        to: destination.trim(),
         subject: `Relatório de Conciliação — ${labelPeriodo}`,
-        html: `<p>Olá,</p><p>Segue em anexo o relatório de conciliação de comissões com emissão no período de <strong>${labelPeriodo}</strong>.</p><p>Total: ${apolices.length} apólice(s).</p><p>SeguroPro</p>`,
+        html: `<p>Olá,</p><p>Segue em anexo o relatório de conciliação de comissões com início de vigência no período de <strong>${labelPeriodo}</strong>.</p><p>Total: ${apolices.length} apólice(s).</p><p>SeguroPro</p>`,
         from: adminFrom ?? undefined,
         replyTo: admin.email ?? undefined,
         attachmentBase64: base64,

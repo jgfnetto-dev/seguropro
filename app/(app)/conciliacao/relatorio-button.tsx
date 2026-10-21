@@ -1,12 +1,10 @@
 'use client'
 import { useState } from 'react'
-import { Printer } from 'lucide-react'
+import { Printer, Loader2, CheckCircle, AlertCircle, Smartphone, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { useToast } from '@/components/ui/toast'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { MESES, anosDisponiveis } from '@/lib/utils'
 
 interface Props {
@@ -15,137 +13,199 @@ interface Props {
   emailUsuario?: string
 }
 
+function celularMask(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 11)
+  if (d.length <= 2) return d
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+}
+
 export function RelatorioConciliacaoButton({ mesAtual, anoAtual, emailUsuario }: Props) {
-  const { showToast, ToastComponent } = useToast()
   const [open, setOpen] = useState(false)
   const [mesInicio, setMesInicio] = useState(String(mesAtual))
   const [anoInicio, setAnoInicio] = useState(String(anoAtual))
   const [mesFim, setMesFim] = useState(String(mesAtual))
   const [anoFim, setAnoFim] = useState(String(anoAtual))
-  const [canal, setCanal] = useState<'whatsapp' | 'email'>('whatsapp')
-  const [email, setEmail] = useState(emailUsuario ?? '')
-  const [enviando, setEnviando] = useState(false)
+  const [via, setVia] = useState<'whatsapp' | 'email'>('whatsapp')
+  const [destination, setDestination] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null)
 
-  async function handleEnviar() {
-    if (canal === 'email' && !email.trim()) {
-      showToast('Informe o e-mail de destino.', 'error')
-      return
-    }
+  function handleClose() {
+    setOpen(false)
+    setResult(null)
+    setDestination('')
+    setVia('whatsapp')
+  }
 
-    setEnviando(true)
-    const res = await fetch('/api/conciliacao/relatorio', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mesInicio: parseInt(mesInicio),
-        anoInicio: parseInt(anoInicio),
-        mesFim: parseInt(mesFim),
-        anoFim: parseInt(anoFim),
-        canal,
-        email: canal === 'email' ? email.trim() : undefined,
-      }),
-    })
-    const data = await res.json()
-    setEnviando(false)
+  function handleViaChange(newVia: 'whatsapp' | 'email') {
+    setVia(newVia)
+    setDestination(newVia === 'email' ? (emailUsuario ?? '') : '')
+  }
 
-    if (res.ok) {
-      showToast(
-        canal === 'whatsapp' ? 'Relatório enviado via WhatsApp!' : `Relatório enviado para ${email}!`,
-        'success'
-      )
-      setOpen(false)
-    } else {
-      showToast(`Erro ao enviar relatório: ${data.error ?? 'falha desconhecida'}`, 'error')
+  async function handleSend() {
+    if (!destination.trim()) return
+    setLoading(true)
+    setResult(null)
+    try {
+      const res = await fetch('/api/conciliacao/relatorio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mesInicio: parseInt(mesInicio),
+          anoInicio: parseInt(anoInicio),
+          mesFim: parseInt(mesFim),
+          anoFim: parseInt(anoFim),
+          canal: via,
+          destination: destination.trim(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erro ao enviar.')
+      setResult({ ok: true, msg: `PDF enviado com sucesso! (${data.total} apólice${data.total !== 1 ? 's' : ''})` })
+    } catch (err) {
+      setResult({ ok: false, msg: err instanceof Error ? err.message : 'Erro ao enviar.' })
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <>
-      {ToastComponent}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <button
-            title="Gerar relatório de conciliação em PDF"
-            className="p-2 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
-          >
-            <Printer className="w-4 h-4" />
-          </button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Relatório de Conciliação (PDF)</DialogTitle>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true) }}>
+      <DialogTrigger asChild>
+        <button
+          title="Gerar relatório de conciliação em PDF"
+          className="flex items-center justify-center w-9 h-9 rounded border border-outline-variant/40 text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+        >
+          <Printer className="w-4 h-4" />
+        </button>
+      </DialogTrigger>
+
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Relatório de Conciliação (PDF)</DialogTitle>
+        </DialogHeader>
+
+        {result ? (
           <div className="space-y-4">
-            <div>
-              <Label>Período</Label>
-              <div className="grid grid-cols-2 gap-3 mt-1">
-                <div className="flex gap-2">
-                  <Select value={mesInicio} onValueChange={setMesInicio}>
-                    <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
-                    <SelectContent>
-                      {MESES.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Select value={anoInicio} onValueChange={setAnoInicio}>
-                    <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
-                    <SelectContent>
-                      {anosDisponiveis().map((a) => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2">
-                  <Select value={mesFim} onValueChange={setMesFim}>
-                    <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
-                    <SelectContent>
-                      {MESES.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Select value={anoFim} onValueChange={setAnoFim}>
-                    <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
-                    <SelectContent>
-                      {anosDisponiveis().map((a) => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <p className="text-xs text-on-surface-variant mt-1">De (mês/ano) até (mês/ano) — apólices com emissão nesse intervalo.</p>
+            <div className={`flex items-start gap-3 rounded-lg px-4 py-3 text-sm ${result.ok ? 'bg-success/10 text-success border border-success/20' : 'bg-error/10 text-error border border-error/20'}`}>
+              {result.ok
+                ? <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                : <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              }
+              {result.msg}
             </div>
-
-            <div>
-              <Label>Enviar por</Label>
-              <div className="flex gap-2 mt-1">
-                <Button type="button" variant={canal === 'whatsapp' ? 'default' : 'outline'} className="flex-1" onClick={() => setCanal('whatsapp')}>
-                  WhatsApp
-                </Button>
-                <Button type="button" variant={canal === 'email' ? 'default' : 'outline'} className="flex-1" onClick={() => setCanal('email')}>
-                  E-mail
-                </Button>
-              </div>
-            </div>
-
-            {canal === 'email' && (
-              <div>
-                <Label htmlFor="email-relatorio-conciliacao">E-mail de destino</Label>
-                <Input
-                  id="email-relatorio-conciliacao"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nome@exemplo.com"
-                />
-                <p className="text-xs text-on-surface-variant mt-1">Pode usar o e-mail cadastrado ou informar outro.</p>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-              <Button type="button" onClick={handleEnviar} disabled={enviando}>
-                {enviando ? 'Enviando...' : 'Enviar Relatório'}
-              </Button>
-            </div>
+            <Button onClick={handleClose} className="w-full">Fechar</Button>
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        ) : (
+          <div className="space-y-5">
+            {/* Período */}
+            <div className="space-y-2">
+              <Label>Período</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <p className="text-xs text-on-surface-variant">De</p>
+                  <div className="flex gap-2">
+                    <Select value={mesInicio} onValueChange={setMesInicio}>
+                      <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
+                      <SelectContent>
+                        {MESES.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={anoInicio} onValueChange={setAnoInicio}>
+                      <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
+                      <SelectContent>
+                        {anosDisponiveis().map((a) => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-on-surface-variant">Até</p>
+                  <div className="flex gap-2">
+                    <Select value={mesFim} onValueChange={setMesFim}>
+                      <SelectTrigger><SelectValue placeholder="Mês" /></SelectTrigger>
+                      <SelectContent>
+                        {MESES.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={anoFim} onValueChange={setAnoFim}>
+                      <SelectTrigger><SelectValue placeholder="Ano" /></SelectTrigger>
+                      <SelectContent>
+                        {anosDisponiveis().map((a) => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Canal */}
+            <div className="space-y-2">
+              <p className="text-body-sm font-medium text-on-surface">Enviar por</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleViaChange('whatsapp')}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-body-sm font-medium transition-colors ${
+                    via === 'whatsapp'
+                      ? 'bg-primary/10 border-primary text-primary'
+                      : 'border-outline-variant/40 text-on-surface-variant hover:border-primary/40'
+                  }`}
+                >
+                  <Smartphone className="w-4 h-4" /> WhatsApp
+                </button>
+                <button
+                  onClick={() => handleViaChange('email')}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-body-sm font-medium transition-colors ${
+                    via === 'email'
+                      ? 'bg-primary/10 border-primary text-primary'
+                      : 'border-outline-variant/40 text-on-surface-variant hover:border-primary/40'
+                  }`}
+                >
+                  <Mail className="w-4 h-4" /> E-mail
+                </button>
+              </div>
+            </div>
+
+            {/* Destino */}
+            <div className="space-y-1.5">
+              <label className="label-caps text-on-surface-variant block">
+                {via === 'whatsapp' ? 'Número do WhatsApp' : 'Endereço de e-mail'}
+              </label>
+              {via === 'whatsapp' ? (
+                <input
+                  className="w-full h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="(21) 99999-9999"
+                  value={destination}
+                  onChange={(e) => setDestination(celularMask(e.target.value))}
+                  inputMode="numeric"
+                />
+              ) : (
+                <input
+                  type="email"
+                  className="w-full h-10 px-3 rounded border border-outline-variant bg-card text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="destinatario@email.com"
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                />
+              )}
+            </div>
+
+            <Button
+              onClick={handleSend}
+              disabled={loading || !destination.trim()}
+              className="w-full gap-2"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" />Gerando PDF…</>
+              ) : (
+                <><Printer className="w-4 h-4" />Gerar e Enviar PDF</>
+              )}
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }
