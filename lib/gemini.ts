@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
 
 // Dados-chave da apólice estão nas primeiras páginas. Limitar o texto
 // reduz drasticamente os tokens enviados e a latência da resposta da IA.
-const TEXT_LIMIT = 8000
+const TEXT_LIMIT = 12000
 const MODEL_FALLBACKS = ['gemini-flash-latest', 'gemini-flash-lite-latest']
 const MAX_RETRIES_PER_MODEL = 2
 
@@ -65,10 +65,10 @@ export async function extractPdfData(pdfText: string, tiposDisponiveis?: string[
   "data_fim": "data de fim da vigência no formato YYYY-MM-DD",
   "seguradora": "nome da seguradora/empresa que emitiu a apólice (a empresa seguradora, não a corretora). Geralmente aparece próximo de 'Seguradora', 'CNPJ' ou no cabeçalho/logo do documento. Ignore o nome da corretora que intermediou a venda.",
   ${tipoInstruction},
-  "premio_liquido": número com o prêmio líquido (apenas o número, sem R$),
-  "premio_total": número com o prêmio total (apenas o número, sem R$)
+  "premio_liquido": número com o prêmio líquido — pode aparecer como "Prêmio líquido", "Prêmio Líquido", "Premio Liquido", "Prêmio líquido total", "Prêmio coberturas + adicionais". Use apenas o número sem R$. Se houver somente um valor total de prêmio sem discriminar líquido/total, use-o aqui,
+  "premio_total": número com o prêmio total — pode aparecer como "Prêmio Total", "Total do Seguro", "Total do Prêmio", "Valor Total", "Total a Pagar" (geralmente inclui IOF e encargos). Use apenas o número sem R$.
 }
-Retorne apenas o JSON, sem explicações adicionais. Mesmo em documentos com layout fora do padrão (tabelas, cartões, colunas), procure cuidadosamente por cada campo antes de retornar null.`
+Retorne apenas o JSON, sem explicações adicionais. Mesmo em documentos com layout fora do padrão (tabelas, cartões, colunas), procure cuidadosamente por cada campo antes de retornar null. Priorize valores monetários que aparecem explicitamente rotulados como prêmio ou total do seguro.`
 
   return extractWithText(pdfText, prompt)
 }

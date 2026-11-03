@@ -2,7 +2,7 @@
  * Extração de texto de PDF no browser usando pdfjs-dist.
  * Elimina o envio do binário ao servidor para extração, reduzindo latência.
  */
-export async function extractTextFromPdf(file: File, maxChars = 8000): Promise<string> {
+export async function extractTextFromPdf(file: File, maxChars = 12000): Promise<string> {
   const pdfjsLib = await import('pdfjs-dist')
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
@@ -11,7 +11,7 @@ export async function extractTextFromPdf(file: File, maxChars = 8000): Promise<s
   const pdf = await loadingTask.promise
 
   let fullText = ''
-  const pagesToRead = Math.min(pdf.numPages, 5)
+  const pagesToRead = Math.min(pdf.numPages, 12)
 
   for (let i = 1; i <= pagesToRead; i++) {
     const page = await pdf.getPage(i)
