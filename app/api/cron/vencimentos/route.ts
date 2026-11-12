@@ -65,8 +65,8 @@ async function handle(req: NextRequest) {
     baseQuery().eq('data_fim', data5),
   ])
 
-  const apolices10 = (a10 ?? []) as ApoliceRow[]
-  const apolices5 = (a5 ?? []) as ApoliceRow[]
+  const apolices10 = (a10 ?? []) as unknown as ApoliceRow[]
+  const apolices5 = (a5 ?? []) as unknown as ApoliceRow[]
 
   const corretoraIds = Array.from(new Set([
     ...apolices10.map((a) => a.corretora_id),
