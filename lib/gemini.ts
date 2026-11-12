@@ -55,8 +55,9 @@ export async function extractPdfData(pdfText: string, tiposDisponiveis?: string[
 
   const prompt = `Extraia os dados desta apólice de seguro e retorne APENAS um JSON válido com os seguintes campos (use null para campos não encontrados):
 {
-  "segurado": "nome completo do segurado",
-  "cpf_cnpj": "CPF ou CNPJ do segurado (apenas números e pontuação)",
+  "tomador": "nome completo do TOMADOR do seguro, se aparecer explicitamente rotulado como 'Tomador' ou 'Tomador do Seguro'. Use null se não encontrar essa distinção.",
+  "segurado": "nome completo do SEGURADO. Se existir um campo separado de 'Tomador', extraia o nome do campo 'Segurado'. Se não houver distinção Tomador/Segurado, extraia o nome do contratante principal.",
+  "cpf_cnpj": "CPF ou CNPJ do TOMADOR quando existir campo 'Tomador' no documento. Se não houver TOMADOR, use o CPF/CNPJ do SEGURADO. Apenas números e pontuação.",
   "email": "e-mail do segurado, se constar no documento",
   "telefone": "telefone/celular do segurado, se constar no documento",
   "numero_apolice": "número da apólice",

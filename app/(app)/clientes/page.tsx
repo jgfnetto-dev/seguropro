@@ -71,7 +71,8 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
           <thead>
             <tr className="border-b border-outline-variant/30">
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">CPF/CNPJ</th>
-              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Cliente (Segurado)</th>
+              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Cliente</th>
+              <th className="label-caps text-on-surface-variant text-left px-4 py-3">Segurado</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">E-mail</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">Telefone</th>
               <th className="label-caps text-on-surface-variant text-left px-4 py-3">PF/PJ</th>
@@ -87,6 +88,7 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
                     {c.segurado}
                   </Link>
                 </td>
+                <td className="px-4 py-3 text-body-sm text-on-surface-variant">{c.nome_segurado || '—'}</td>
                 <td className="px-4 py-3 text-body-sm text-on-surface-variant">{c.email || '—'}</td>
                 <td className="px-4 py-3 text-body-sm text-on-surface-variant">{c.telefone || '—'}</td>
                 <td className="px-4 py-3">
@@ -110,7 +112,7 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
             ))}
             {!clientes?.length && (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-body-sm text-on-surface-variant">
+                <td colSpan={7} className="text-center py-12 text-body-sm text-on-surface-variant">
                   Nenhum cliente encontrado
                 </td>
               </tr>

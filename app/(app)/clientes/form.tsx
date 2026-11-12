@@ -18,6 +18,7 @@ export function ClienteForm({ cliente, isEdit }: Props) {
   const { showToast, ToastComponent } = useToast()
   const [pfPj, setPfPj] = useState<'PF' | 'PJ'>(cliente?.pf_pj ?? 'PF')
   const [segurado, setSegurado] = useState(cliente?.segurado ?? '')
+  const [nomeSegurado, setNomeSegurado] = useState(cliente?.nome_segurado ?? '')
   const [cpfCnpj, setCpfCnpj] = useState(cliente?.cpf_cnpj ?? '')
   const [email, setEmail] = useState(cliente?.email ?? '')
   const [telefone, setTelefone] = useState(cliente?.telefone ?? '')
@@ -28,8 +29,8 @@ export function ClienteForm({ cliente, isEdit }: Props) {
     setLoading(true)
     const method = isEdit ? 'PUT' : 'POST'
     const body = isEdit
-      ? { id: cliente?.id, segurado, cpf_cnpj: cpfCnpj, email, telefone, pf_pj: pfPj }
-      : { segurado, cpf_cnpj: cpfCnpj, email, telefone, pf_pj: pfPj }
+      ? { id: cliente?.id, segurado, nome_segurado: nomeSegurado || null, cpf_cnpj: cpfCnpj, email, telefone, pf_pj: pfPj }
+      : { segurado, nome_segurado: nomeSegurado || null, cpf_cnpj: cpfCnpj, email, telefone, pf_pj: pfPj }
     const res = await fetch('/api/clientes', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     setLoading(false)
     if (res.ok) {
@@ -84,6 +85,16 @@ export function ClienteForm({ cliente, isEdit }: Props) {
                 onChange={(e) => setSegurado(e.target.value)}
                 placeholder={pfPj === 'PF' ? 'Ex: Roberto Silva' : 'Ex: Roberto Silva S/A'}
                 required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="nome_segurado">Nome do Segurado</Label>
+              <Input
+                id="nome_segurado"
+                value={nomeSegurado}
+                onChange={(e) => setNomeSegurado(e.target.value)}
+                placeholder="Preenchido automaticamente quando diferente do tomador"
               />
             </div>
 

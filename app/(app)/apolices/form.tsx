@@ -40,6 +40,7 @@ function matchSeguradora(nomeExtraido: string, seguradoras: { id: string; nome: 
 
 interface PendingCliente {
   segurado: string
+  nome_segurado?: string | null
   cpf_cnpj: string
   pf_pj: 'PF' | 'PJ'
   email: string | null
@@ -183,21 +184,33 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
 
         if (data.segurado && data.cpf_cnpj) {
           const extractedDigits = onlyDigits(data.cpf_cnpj)
+          const temTomador = !!(data.tomador && typeof data.tomador === 'string' && data.tomador.trim())
+          const nomeCliente = temTomador ? (data.tomador as string).trim() : data.segurado
+          const nomeSegurado = temTomador ? (data.segurado as string) : null
           const existing = clientesList.find((c) => onlyDigits(c.cpf_cnpj ?? '') === extractedDigits)
           if (existing) {
             setClienteId(existing.id)
             setPendingCliente(null)
+            // Atualiza nome_segurado no cliente existente quando PDF tem TOMADOR+SEGURADO
+            if (temTomador) {
+              fetch('/api/clientes', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: existing.id, nome_segurado: nomeSegurado }),
+              }).catch(() => null)
+            }
           } else {
             const pfPj = extractedDigits.length > 11 ? 'PJ' : 'PF'
             setClienteId('')
             setPendingCliente({
-              segurado: data.segurado,
+              segurado: nomeCliente,
+              nome_segurado: nomeSegurado,
               cpf_cnpj: data.cpf_cnpj,
               pf_pj: pfPj,
               email: data.email ?? null,
               telefone: data.telefone ?? null,
             })
-            showToast(`Cliente "${data.segurado}" será criado automaticamente ao salvar a apólice.`, 'info')
+            showToast(`Cliente "${nomeCliente}" será criado automaticamente ao salvar a apólice.`, 'info')
           }
         } else {
           showToast('PDF não trouxe nome e CPF/CNPJ do segurado. Selecione o cliente manualmente.', 'info')

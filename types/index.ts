@@ -31,6 +31,7 @@ export interface Cliente {
   id: string
   corretora_id: string
   segurado: string
+  nome_segurado?: string | null
   cpf_cnpj: string
   email?: string
   telefone?: string
@@ -180,6 +181,7 @@ export interface Tarefa {
 }
 
 export interface PdfExtractResult {
+  tomador?: string
   segurado?: string
   cpf_cnpj?: string
   email?: string
