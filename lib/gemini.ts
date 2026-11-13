@@ -65,7 +65,7 @@ export async function extractPdfData(pdfText: string, tiposDisponiveis?: string[
   "data_emissao": "data de emissão da apólice no formato YYYY-MM-DD",
   "data_inicio": "data de início da vigência no formato YYYY-MM-DD",
   "data_fim": "data de fim da vigência no formato YYYY-MM-DD",
-  "seguradora": "nome da seguradora/empresa que emitiu a apólice (a empresa seguradora, não a corretora). Geralmente aparece próximo de 'Seguradora', 'CNPJ' ou no cabeçalho/logo do documento. Ignore o nome da corretora que intermediou a venda.",
+  "seguradora": "nome da seguradora/empresa que emitiu a apólice (a empresa seguradora, não a corretora). Procure em: (1) cabeçalho do documento, (2) frases como 'Este seguro é garantido pela [X]', 'emitido por [X]', 'garantido pela Seguradora [X] S.A.', 'seguro garantido por [X]', (3) próximo ao código SUSEP ou CNPJ da seguradora emissora, (4) assinaturas de diretores/representantes da seguradora. Ignore o nome da corretora intermediária.",
   ${tipoInstruction},
   "premio_liquido": número com o prêmio líquido — pode aparecer como "Prêmio líquido", "Prêmio Líquido", "Premio Liquido", "Prêmio líquido total", "Prêmio coberturas + adicionais". Use apenas o número sem R$. Se houver somente um valor total de prêmio sem discriminar líquido/total, use-o aqui,
   "premio_total": número com o prêmio total — pode aparecer como "Prêmio Total", "Total do Seguro", "Total do Prêmio", "Valor Total", "Total a Pagar" (geralmente inclui IOF e encargos). Use apenas o número sem R$.
