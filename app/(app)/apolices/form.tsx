@@ -56,7 +56,7 @@ interface DocumentoPendente {
 interface Props {
   apolice?: Apolice
   seguradoras: { id: string; nome: string; ramos?: string[] }[]
-  clientes: { id: string; segurado: string; cpf_cnpj?: string }[]
+  clientes: { id: string; segurado: string; cpf_cnpj?: string; cpf_cnpj_segurado?: string | null }[]
   defaultClienteId?: string
   isEdit?: boolean
   documentosExistentes?: DocumentoApolice[]
@@ -193,13 +193,39 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         const cpfCnpjSegurado = temTomador ? (data.cpf_cnpj as string | undefined ?? null) : null
 
         if (nomeCliente && cpfCnpjCliente) {
-          const extractedDigits = onlyDigits(cpfCnpjCliente)
-          const existing = clientesList.find((c) => onlyDigits(c.cpf_cnpj ?? '') === extractedDigits)
+          const extractedTomadorDigits = onlyDigits(cpfCnpjCliente)
+          const extractedSeguradoDigits = cpfCnpjSegurado ? onlyDigits(cpfCnpjSegurado) : null
+
+          let existing: typeof clientesList[0] | undefined
+          let legacyUpdate = false
+
+          if (temTomador && extractedSeguradoDigits) {
+            // 1. Par exato: mesmo CNPJ do Tomador + mesmo CNPJ do Segurado
+            existing = clientesList.find((c) =>
+              onlyDigits(c.cpf_cnpj ?? '') === extractedTomadorDigits &&
+              onlyDigits(c.cpf_cnpj_segurado ?? '') === extractedSeguradoDigits
+            )
+            if (!existing) {
+              // 2. Tomador com cpf_cnpj_segurado nulo (cliente legado sem Segurado registrado) → atualiza
+              const legacyCliente = clientesList.find((c) =>
+                onlyDigits(c.cpf_cnpj ?? '') === extractedTomadorDigits &&
+                !c.cpf_cnpj_segurado
+              )
+              if (legacyCliente) {
+                existing = legacyCliente
+                legacyUpdate = true
+              }
+              // 3. Tomador com Segurado diferente (não nulo) → cria novo cliente (fall through)
+            }
+          } else {
+            // Sem distinção de Segurado: busca só pelo CNPJ do Tomador
+            existing = clientesList.find((c) => onlyDigits(c.cpf_cnpj ?? '') === extractedTomadorDigits)
+          }
+
           if (existing) {
             setClienteId(existing.id)
             setPendingCliente(null)
-            // Atualiza nome_segurado e cpf_cnpj_segurado no cliente existente quando PDF tem TOMADOR+SEGURADO
-            if (temTomador) {
+            if (legacyUpdate) {
               fetch('/api/clientes', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -207,7 +233,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
               }).catch(() => null)
             }
           } else {
-            const pfPj = extractedDigits.length > 11 ? 'PJ' : 'PF'
+            const pfPj = extractedTomadorDigits.length > 11 ? 'PJ' : 'PF'
             setClienteId('')
             setPendingCliente({
               segurado: nomeCliente,

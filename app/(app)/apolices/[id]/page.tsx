@@ -14,7 +14,7 @@ export default async function EditApolicePage({ params }: { params: { id: string
   if (!apolice) notFound()
 
   const { data: seguradoras } = await supabase.from('seguradoras').select('id, nome, ramos').eq('corretora_id', usuario?.corretora_id).order('nome')
-  const { data: clientes } = await supabase.from('clientes').select('id, segurado, cpf_cnpj').eq('corretora_id', usuario?.corretora_id).order('segurado')
+  const { data: clientes } = await supabase.from('clientes').select('id, segurado, cpf_cnpj, cpf_cnpj_segurado').eq('corretora_id', usuario?.corretora_id).order('segurado')
   const { data: documentos } = await supabase.from('documentos_apolice').select('*').eq('apolice_id', params.id).order('criado_em', { ascending: false })
 
   return (
