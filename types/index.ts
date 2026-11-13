@@ -182,6 +182,7 @@ export interface Tarefa {
 
 export interface PdfExtractResult {
   tomador?: string
+  cpf_cnpj_tomador?: string
   segurado?: string
   cpf_cnpj?: string
   email?: string

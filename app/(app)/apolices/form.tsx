@@ -182,11 +182,16 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
           showToast('PDF não trouxe o tipo de seguro. Selecione manualmente.', 'info')
         }
 
-        if (data.segurado && data.cpf_cnpj) {
-          const extractedDigits = onlyDigits(data.cpf_cnpj)
-          const temTomador = !!(data.tomador && typeof data.tomador === 'string' && data.tomador.trim())
-          const nomeCliente = temTomador ? (data.tomador as string).trim() : data.segurado
-          const nomeSegurado = temTomador ? (data.segurado as string) : null
+        const temTomador = !!(data.tomador && typeof data.tomador === 'string' && data.tomador.trim())
+        // Quando há TOMADOR, o cliente é o tomador (com seu CNPJ); segurado vai para nome_segurado
+        const nomeCliente = temTomador ? (data.tomador as string).trim() : (data.segurado as string)
+        const nomeSegurado = temTomador ? (data.segurado as string) : null
+        const cpfCnpjCliente = temTomador
+          ? (data.cpf_cnpj_tomador as string | undefined ?? data.cpf_cnpj as string | undefined)
+          : (data.cpf_cnpj as string | undefined)
+
+        if (nomeCliente && cpfCnpjCliente) {
+          const extractedDigits = onlyDigits(cpfCnpjCliente)
           const existing = clientesList.find((c) => onlyDigits(c.cpf_cnpj ?? '') === extractedDigits)
           if (existing) {
             setClienteId(existing.id)
@@ -205,7 +210,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
             setPendingCliente({
               segurado: nomeCliente,
               nome_segurado: nomeSegurado,
-              cpf_cnpj: data.cpf_cnpj,
+              cpf_cnpj: cpfCnpjCliente,
               pf_pj: pfPj,
               email: data.email ?? null,
               telefone: data.telefone ?? null,
