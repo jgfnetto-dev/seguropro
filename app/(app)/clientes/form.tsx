@@ -20,6 +20,7 @@ export function ClienteForm({ cliente, isEdit }: Props) {
   const [segurado, setSegurado] = useState(cliente?.segurado ?? '')
   const [nomeSegurado, setNomeSegurado] = useState(cliente?.nome_segurado ?? '')
   const [cpfCnpj, setCpfCnpj] = useState(cliente?.cpf_cnpj ?? '')
+  const [cpfCnpjSegurado, setCpfCnpjSegurado] = useState(cliente?.cpf_cnpj_segurado ?? '')
   const [email, setEmail] = useState(cliente?.email ?? '')
   const [telefone, setTelefone] = useState(cliente?.telefone ?? '')
   const [loading, setLoading] = useState(false)
@@ -29,8 +30,8 @@ export function ClienteForm({ cliente, isEdit }: Props) {
     setLoading(true)
     const method = isEdit ? 'PUT' : 'POST'
     const body = isEdit
-      ? { id: cliente?.id, segurado, nome_segurado: nomeSegurado || null, cpf_cnpj: cpfCnpj, email, telefone, pf_pj: pfPj }
-      : { segurado, nome_segurado: nomeSegurado || null, cpf_cnpj: cpfCnpj, email, telefone, pf_pj: pfPj }
+      ? { id: cliente?.id, segurado, nome_segurado: nomeSegurado || null, cpf_cnpj: cpfCnpj, cpf_cnpj_segurado: cpfCnpjSegurado || null, email, telefone, pf_pj: pfPj }
+      : { segurado, nome_segurado: nomeSegurado || null, cpf_cnpj: cpfCnpj, cpf_cnpj_segurado: cpfCnpjSegurado || null, email, telefone, pf_pj: pfPj }
     const res = await fetch('/api/clientes', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     setLoading(false)
     if (res.ok) {
@@ -88,14 +89,25 @@ export function ClienteForm({ cliente, isEdit }: Props) {
               />
             </div>
 
-            <div>
-              <Label htmlFor="nome_segurado">Nome do Segurado</Label>
-              <Input
-                id="nome_segurado"
-                value={nomeSegurado}
-                onChange={(e) => setNomeSegurado(e.target.value)}
-                placeholder="Preenchido automaticamente quando diferente do tomador"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nome_segurado">Nome do Segurado</Label>
+                <Input
+                  id="nome_segurado"
+                  value={nomeSegurado}
+                  onChange={(e) => setNomeSegurado(e.target.value)}
+                  placeholder="Preenchido automaticamente quando diferente do tomador"
+                />
+              </div>
+              <div>
+                <Label htmlFor="cpf_cnpj_segurado">CPF/CNPJ do Segurado</Label>
+                <Input
+                  id="cpf_cnpj_segurado"
+                  value={cpfCnpjSegurado}
+                  onChange={(e) => setCpfCnpjSegurado(e.target.value)}
+                  placeholder="Preenchido automaticamente pelo PDF"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

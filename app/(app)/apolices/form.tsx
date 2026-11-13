@@ -42,6 +42,7 @@ interface PendingCliente {
   segurado: string
   nome_segurado?: string | null
   cpf_cnpj: string
+  cpf_cnpj_segurado?: string | null
   pf_pj: 'PF' | 'PJ'
   email: string | null
   telefone: string | null
@@ -189,6 +190,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
         const cpfCnpjCliente = temTomador
           ? (data.cpf_cnpj_tomador as string | undefined ?? data.cpf_cnpj as string | undefined)
           : (data.cpf_cnpj as string | undefined)
+        const cpfCnpjSegurado = temTomador ? (data.cpf_cnpj as string | undefined ?? null) : null
 
         if (nomeCliente && cpfCnpjCliente) {
           const extractedDigits = onlyDigits(cpfCnpjCliente)
@@ -196,12 +198,12 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
           if (existing) {
             setClienteId(existing.id)
             setPendingCliente(null)
-            // Atualiza nome_segurado no cliente existente quando PDF tem TOMADOR+SEGURADO
+            // Atualiza nome_segurado e cpf_cnpj_segurado no cliente existente quando PDF tem TOMADOR+SEGURADO
             if (temTomador) {
               fetch('/api/clientes', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: existing.id, nome_segurado: nomeSegurado }),
+                body: JSON.stringify({ id: existing.id, nome_segurado: nomeSegurado, cpf_cnpj_segurado: cpfCnpjSegurado }),
               }).catch(() => null)
             }
           } else {
@@ -211,6 +213,7 @@ export function ApoliceForm({ apolice, seguradoras, clientes, defaultClienteId, 
               segurado: nomeCliente,
               nome_segurado: nomeSegurado,
               cpf_cnpj: cpfCnpjCliente,
+              cpf_cnpj_segurado: cpfCnpjSegurado,
               pf_pj: pfPj,
               email: data.email ?? null,
               telefone: data.telefone ?? null,

@@ -33,6 +33,7 @@ export interface Cliente {
   segurado: string
   nome_segurado?: string | null
   cpf_cnpj: string
+  cpf_cnpj_segurado?: string | null
   email?: string
   telefone?: string
   pf_pj: 'PF' | 'PJ'

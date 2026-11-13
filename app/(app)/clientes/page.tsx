@@ -88,7 +88,12 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
                     {c.segurado}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-body-sm text-on-surface-variant">{c.nome_segurado || '—'}</td>
+                <td className="px-4 py-3">
+                  <div className="text-body-sm text-on-surface-variant">{c.nome_segurado || '—'}</div>
+                  {c.cpf_cnpj_segurado && (
+                    <div className="text-xs text-on-surface-variant/70 mt-0.5">{formatCpfCnpj(c.cpf_cnpj_segurado)}</div>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-body-sm text-on-surface-variant">{c.email || '—'}</td>
                 <td className="px-4 py-3 text-body-sm text-on-surface-variant">{c.telefone || '—'}</td>
                 <td className="px-4 py-3">
