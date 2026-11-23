@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Download, X, Plus, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function DocumentosCliente({ clienteId, documentosIniciais, clienteData }: Props) {
+  const router = useRouter()
   const { showToast, ToastComponent } = useToast()
   const [documentos, setDocumentos] = useState<DocumentoCliente[]>(documentosIniciais)
   const [nomeDocumento, setNomeDocumento] = useState('')
@@ -84,6 +86,7 @@ export function DocumentosCliente({ clienteId, documentosIniciais, clienteData }
         }),
       })
       showToast('Documento adicionado e cliente salvo.', 'success')
+      router.refresh()
     } finally {
       setSalvando(false)
     }
@@ -95,6 +98,7 @@ export function DocumentosCliente({ clienteId, documentosIniciais, clienteData }
       setDocumentos((prev) => prev.filter((d) => d.id !== id))
       setConfirmandoId(null)
       showToast('Documento excluído.', 'success')
+      router.refresh()
     } else {
       showToast('Erro ao excluir documento.', 'error')
     }
