@@ -11,9 +11,10 @@ import type { Cliente } from '@/types'
 interface Props {
   cliente?: Cliente
   isEdit?: boolean
+  noRedirect?: boolean
 }
 
-export function ClienteForm({ cliente, isEdit }: Props) {
+export function ClienteForm({ cliente, isEdit, noRedirect }: Props) {
   const router = useRouter()
   const { showToast, ToastComponent } = useToast()
   const [pfPj, setPfPj] = useState<'PF' | 'PJ'>(cliente?.pf_pj ?? 'PF')
@@ -36,10 +37,12 @@ export function ClienteForm({ cliente, isEdit }: Props) {
     setLoading(false)
     if (res.ok) {
       showToast(isEdit ? 'Cliente atualizado!' : 'Cliente cadastrado!', 'success')
-      setTimeout(() => {
-        router.push('/clientes')
-        router.refresh()
-      }, 800)
+      if (!noRedirect) {
+        setTimeout(() => {
+          router.push('/clientes')
+          router.refresh()
+        }, 800)
+      }
     } else {
       showToast('Erro ao salvar cliente.', 'error')
     }
@@ -56,7 +59,7 @@ export function ClienteForm({ cliente, isEdit }: Props) {
       <Card>
         <CardContent className="pt-6">
           <h3 className="text-h3 text-on-surface mb-4">Informações do Segurado</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form id="cliente-form" onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label>Tipo de Pessoa</Label>
               <div className="flex gap-4 mt-2">

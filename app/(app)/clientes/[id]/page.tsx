@@ -45,7 +45,7 @@ export default async function ClientePage({ params }: { params: { id: string } }
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
-          <ClienteForm cliente={cliente} isEdit />
+          <ClienteForm cliente={cliente} isEdit noRedirect />
         </div>
 
         <div className="space-y-4">

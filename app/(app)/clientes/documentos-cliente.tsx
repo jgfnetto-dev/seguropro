@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, X, Plus, Loader2 } from 'lucide-react'
+import { Download, X, Plus, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,6 +24,7 @@ export function DocumentosCliente({ clienteId, documentosIniciais }: Props) {
   const [nomeDocumento, setNomeDocumento] = useState('')
   const [arquivo, setArquivo] = useState<File | null>(null)
   const [salvando, setSalvando] = useState(false)
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null)
 
   async function handleAdicionar() {
     if (!nomeDocumento.trim()) { showToast('Informe o nome do documento.', 'error'); return }
@@ -54,17 +55,20 @@ export function DocumentosCliente({ clienteId, documentosIniciais }: Props) {
       setDocumentos((prev) => [saveData, ...prev])
       setNomeDocumento('')
       setArquivo(null)
-      showToast('Documento adicionado.', 'success')
+
+      // Salva o cliente automaticamente após adicionar o documento
+      const form = document.getElementById('cliente-form') as HTMLFormElement | null
+      form?.requestSubmit()
     } finally {
       setSalvando(false)
     }
   }
 
-  async function handleExcluir(id: string) {
-    if (!confirm('Excluir este documento?')) return
+  async function handleConfirmarExclusao(id: string) {
     const res = await fetch(`/api/documentos-cliente?id=${id}`, { method: 'DELETE' })
     if (res.ok) {
       setDocumentos((prev) => prev.filter((d) => d.id !== id))
+      setConfirmandoId(null)
       showToast('Documento excluído.', 'success')
     } else {
       showToast('Erro ao excluir documento.', 'error')
@@ -78,18 +82,37 @@ export function DocumentosCliente({ clienteId, documentosIniciais }: Props) {
         {documentos.length > 0 && (
           <div className="space-y-2">
             {documentos.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-outline-variant bg-surface-container-low">
-                <span className="text-body-sm text-on-surface truncate">{doc.nome_documento}</span>
-                <div className="flex items-center gap-1 shrink-0">
-                  <a href={doc.documento_url} target="_blank" rel="noopener noreferrer" title="Baixar"
-                    className="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface">
-                    <Download className="w-4 h-4" />
-                  </a>
-                  <button type="button" onClick={() => handleExcluir(doc.id)} title="Excluir"
-                    className="p-1.5 rounded hover:bg-error/10 text-on-surface-variant hover:text-error">
-                    <X className="w-4 h-4" />
-                  </button>
+              <div key={doc.id} className="rounded border border-outline-variant bg-surface-container-low overflow-hidden">
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="text-body-sm text-on-surface truncate">{doc.nome_documento}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <a href={doc.documento_url} target="_blank" rel="noopener noreferrer" title="Baixar"
+                      className="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface">
+                      <Download className="w-4 h-4" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmandoId(confirmandoId === doc.id ? null : doc.id)}
+                      title="Excluir"
+                      className="p-1.5 rounded hover:bg-error/10 text-on-surface-variant hover:text-error"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
+                {confirmandoId === doc.id && (
+                  <div className="flex items-center justify-between gap-2 px-3 py-2 bg-error/5 border-t border-error/20">
+                    <span className="text-body-sm text-error">Deseja realmente excluir este documento?</span>
+                    <div className="flex gap-2 shrink-0">
+                      <Button type="button" size="sm" variant="outline" onClick={() => setConfirmandoId(null)}>
+                        Cancelar
+                      </Button>
+                      <Button type="button" size="sm" variant="destructive" onClick={() => handleConfirmarExclusao(doc.id)}>
+                        <X className="w-3.5 h-3.5 mr-1" /> Excluir
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
