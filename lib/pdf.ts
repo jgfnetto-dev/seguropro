@@ -293,9 +293,15 @@ export async function gerarPdfConciliacao(apolices: ApoliceConciliacao[], period
     apolices.forEach((a, i) => desenharApolice(a, i % 2 === 1))
   }
 
-  y -= 16
-  if (y < MARGIN) novaPagina()
-  page.drawText(`Total: ${apolices.length} apólice(s).`, { x: MARGIN, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.13) })
+  const totalPremio = apolices.reduce((s, a) => s + Number(a.premio_liquido ?? 0), 0)
+  const totalComissao = apolices.reduce((s, a) => s + Number(a.comissao ?? 0), 0)
+
+  y -= 10
+  if (y - ROW_HEIGHT < MARGIN) novaPagina()
+  page.drawRectangle({ x: MARGIN, y: y - ROW_HEIGHT + 6, width: larguraTotal, height: ROW_HEIGHT, color: rgb(0.0, 0.157, 0.557) })
+  const totaisLabel = `${apolices.length} apólice(s)   |   Prêmio Total: ${formatCurrency(totalPremio)}   |   Comissão Total: ${formatCurrency(totalComissao)}`
+  page.drawText(totaisLabel, { x: MARGIN + CELL_PADDING, y: y - ROW_HEIGHT + 12, size: 9.5, font: fontBold, color: rgb(1, 1, 1) })
+  y -= ROW_HEIGHT
 
   const bytes = await pdfDoc.save()
   return Buffer.from(bytes)

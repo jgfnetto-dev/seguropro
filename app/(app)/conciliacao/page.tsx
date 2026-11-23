@@ -60,6 +60,9 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
     historicoPorApolice.set(c.apolice_id, lista)
   })
 
+  const totalPremio = (apolices ?? []).reduce((s, a) => s + Number(a.premio_liquido ?? 0), 0)
+  const totalComissao = (apolices ?? []).reduce((s, a) => s + Number(a.premio_liquido ?? 0) * ((a.comissao_percentual ?? 0) / 100), 0)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -191,13 +194,19 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
                 </td>
               </tr>
             )}
+            {apolices && apolices.length > 0 && (
+              <tr className="border-t-2 border-outline-variant/40 bg-surface-container-low">
+                <td colSpan={7} className="px-3 py-3 text-body-sm font-semibold text-on-surface">
+                  Total — {apolices.length} apólice{apolices.length !== 1 ? 's' : ''}
+                </td>
+                <td className="px-2 py-3 text-body-sm font-semibold text-on-surface">{formatCurrency(totalPremio)}</td>
+                <td className="px-2 py-3" />
+                <td className="px-2 py-3 text-body-sm font-semibold text-on-surface">{formatCurrency(totalComissao)}</td>
+                <td className="px-3 py-3" />
+              </tr>
+            )}
           </tbody>
         </table>
-        {apolices && apolices.length > 0 && (
-          <div className="px-3 py-3 border-t border-outline-variant/20 text-body-sm text-on-surface-variant">
-            Exibindo {apolices.length} apólice{apolices.length !== 1 ? 's' : ''}
-          </div>
-        )}
       </div>
     </div>
   )
