@@ -13,12 +13,24 @@ interface DocumentoCliente {
   documento_url: string
 }
 
+interface ClienteData {
+  id: string
+  segurado: string
+  nome_segurado?: string | null
+  cpf_cnpj: string
+  cpf_cnpj_segurado?: string | null
+  pf_pj: 'PF' | 'PJ'
+  email?: string | null
+  telefone?: string | null
+}
+
 interface Props {
   clienteId: string
   documentosIniciais: DocumentoCliente[]
+  clienteData: ClienteData
 }
 
-export function DocumentosCliente({ clienteId, documentosIniciais }: Props) {
+export function DocumentosCliente({ clienteId, documentosIniciais, clienteData }: Props) {
   const { showToast, ToastComponent } = useToast()
   const [documentos, setDocumentos] = useState<DocumentoCliente[]>(documentosIniciais)
   const [nomeDocumento, setNomeDocumento] = useState('')
@@ -57,8 +69,21 @@ export function DocumentosCliente({ clienteId, documentosIniciais }: Props) {
       setArquivo(null)
 
       // Salva o cliente automaticamente após adicionar o documento
-      const form = document.getElementById('cliente-form') as HTMLFormElement | null
-      form?.requestSubmit()
+      await fetch('/api/clientes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: clienteData.id,
+          segurado: clienteData.segurado,
+          nome_segurado: clienteData.nome_segurado ?? null,
+          cpf_cnpj: clienteData.cpf_cnpj,
+          cpf_cnpj_segurado: clienteData.cpf_cnpj_segurado ?? null,
+          pf_pj: clienteData.pf_pj,
+          email: clienteData.email ?? null,
+          telefone: clienteData.telefone ?? null,
+        }),
+      })
+      showToast('Documento adicionado e cliente salvo.', 'success')
     } finally {
       setSalvando(false)
     }

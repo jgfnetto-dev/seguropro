@@ -127,7 +127,7 @@ export default async function ClientePage({ params }: { params: { id: string } }
         </div>
         <Card>
           <CardContent className="pt-5">
-            <DocumentosCliente clienteId={cliente.id} documentosIniciais={documentos ?? []} />
+            <DocumentosCliente clienteId={cliente.id} documentosIniciais={documentos ?? []} clienteData={cliente} />
           </CardContent>
         </Card>
       </div>
