@@ -3,11 +3,12 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Plus } from 'lucide-react'
-import { Card } from '@/components/ui/card'
+import { Plus, Paperclip } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ClienteForm } from '../form'
+import { DocumentosCliente } from '../documentos-cliente'
 import { formatDate } from '@/lib/utils'
 
 export default async function ClientePage({ params }: { params: { id: string } }) {
@@ -18,11 +19,18 @@ export default async function ClientePage({ params }: { params: { id: string } }
   const { data: cliente } = await supabase.from('clientes').select('*').eq('id', params.id).single()
   if (!cliente) notFound()
 
-  const { data: apolices } = await supabase
-    .from('apolices')
-    .select('*, seguradora:seguradoras(nome)')
-    .eq('cliente_id', params.id)
-    .order('data_fim', { ascending: false })
+  const [{ data: apolices }, { data: documentos }] = await Promise.all([
+    supabase
+      .from('apolices')
+      .select('*, seguradora:seguradoras(nome)')
+      .eq('cliente_id', params.id)
+      .order('data_fim', { ascending: false }),
+    supabase
+      .from('documentos_cliente')
+      .select('id, nome_documento, documento_url')
+      .eq('cliente_id', params.id)
+      .order('criado_em', { ascending: false }),
+  ])
 
   function getStatusBadge(dataFim: string) {
     const hoje = new Date()
@@ -109,6 +117,18 @@ export default async function ClientePage({ params }: { params: { id: string } }
               )}
             </tbody>
           </table>
+        </Card>
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Paperclip className="w-4 h-4 text-secondary" />
+          <h2 className="text-h2 text-on-surface">Documentos</h2>
+        </div>
+        <Card>
+          <CardContent className="pt-5">
+            <DocumentosCliente clienteId={cliente.id} documentosIniciais={documentos ?? []} />
+          </CardContent>
         </Card>
       </div>
     </div>
