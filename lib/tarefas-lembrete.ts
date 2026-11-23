@@ -10,7 +10,7 @@ interface TarefaPendente {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function enviarLembretesPendentes(supabase: SupabaseClient<any>, tarefas: TarefaPendente[], telefoneWhatsapp: string) {
+export async function enviarLembretesPendentes(supabase: SupabaseClient<any>, tarefas: TarefaPendente[], telefoneWhatsapp: string, instance?: string | null) {
   let enviadas = 0
   for (const tarefa of tarefas) {
     // Reivindica a tarefa de forma atômica (UPDATE condicional) para evitar envio duplicado
@@ -27,7 +27,7 @@ export async function enviarLembretesPendentes(supabase: SupabaseClient<any>, ta
 
     const texto = `📅 *Lembrete de Tarefa* — SeguroPro\n\n${tarefa.tarefa}\n\nAgendado para ${formatDate(tarefa.data)} às ${tarefa.hora.slice(0, 5)}.`
     try {
-      await sendWhatsAppMessage(telefoneWhatsapp, texto)
+      await sendWhatsAppMessage(telefoneWhatsapp, texto, instance)
       enviadas++
     } catch {
       // Falha no envio: libera a tarefa para nova tentativa na próxima verificação.

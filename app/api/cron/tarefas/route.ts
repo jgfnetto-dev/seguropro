@@ -29,25 +29,26 @@ async function handle(req: NextRequest) {
 
   const { data: pendentes, error } = await supabase
     .from('tarefas')
-    .select('id, data, hora, tarefa, usuario_id, usuarios(telefone_whatsapp, telefone_notificacao)')
+    .select('id, data, hora, tarefa, usuario_id, usuarios(telefone_whatsapp, telefone_notificacao, whatsapp_instance)')
     .eq('whatsapp_enviado', false)
     .or(`data.lt.${hoje},and(data.eq.${hoje},hora.lte.${horaAtual})`)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!pendentes?.length) return NextResponse.json({ sent: 0 })
 
-  const porUsuario = new Map<string, { telefone: string; tarefas: { id: string; data: string; hora: string; tarefa: string }[] }>()
-  for (const t of pendentes as unknown as { id: string; data: string; hora: string; tarefa: string; usuario_id: string; usuarios: { telefone_whatsapp: string | null; telefone_notificacao: string | null } | null }[]) {
+  const porUsuario = new Map<string, { telefone: string; instance: string | null; tarefas: { id: string; data: string; hora: string; tarefa: string }[] }>()
+  for (const t of pendentes as unknown as { id: string; data: string; hora: string; tarefa: string; usuario_id: string; usuarios: { telefone_whatsapp: string | null; telefone_notificacao: string | null; whatsapp_instance: string | null } | null }[]) {
     const telefone = t.usuarios?.telefone_notificacao ?? t.usuarios?.telefone_whatsapp
     if (!telefone) continue
-    const grupo = porUsuario.get(t.usuario_id) ?? { telefone, tarefas: [] }
+    const instance = t.usuarios?.whatsapp_instance ?? null
+    const grupo = porUsuario.get(t.usuario_id) ?? { telefone, instance, tarefas: [] }
     grupo.tarefas.push({ id: t.id, data: t.data, hora: t.hora, tarefa: t.tarefa })
     porUsuario.set(t.usuario_id, grupo)
   }
 
   let totalEnviadas = 0
-  for (const { telefone, tarefas } of Array.from(porUsuario.values())) {
-    totalEnviadas += await enviarLembretesPendentes(supabase, tarefas, telefone)
+  for (const { telefone, instance, tarefas } of Array.from(porUsuario.values())) {
+    totalEnviadas += await enviarLembretesPendentes(supabase, tarefas, telefone, instance)
   }
 
   return NextResponse.json({ sent: totalEnviadas })

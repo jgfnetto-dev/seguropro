@@ -10,7 +10,7 @@ export async function POST(_req: NextRequest) {
 
   const { data: usuario } = await supabase
     .from('usuarios')
-    .select('id, telefone_whatsapp, telefone_notificacao')
+    .select('id, telefone_whatsapp, telefone_notificacao, whatsapp_instance')
     .eq('id', session.user.id)
     .single()
 
@@ -33,7 +33,7 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ sent: 0 })
   }
 
-  const enviadas = await enviarLembretesPendentes(supabase, pendentes, telefoneDestino)
-  console.log('[verificar-pendentes] destino:', telefoneDestino, '| notificacao:', usuario?.telefone_notificacao, '| whatsapp:', usuario?.telefone_whatsapp, '| enviadas:', enviadas)
+  const enviadas = await enviarLembretesPendentes(supabase, pendentes, telefoneDestino, usuario.whatsapp_instance)
+  console.log('[verificar-pendentes] destino:', telefoneDestino, '| instance:', usuario?.whatsapp_instance, '| enviadas:', enviadas)
   return NextResponse.json({ sent: enviadas, _destino: telefoneDestino })
 }
