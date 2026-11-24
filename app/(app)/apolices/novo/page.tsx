@@ -10,8 +10,11 @@ export default async function NovaApolicePage({ searchParams }: { searchParams: 
   if (!session) redirect('/auth/login')
 
   const { data: usuario } = await supabase.from('usuarios').select('corretora_id').eq('id', session.user.id).single()
-  const { data: seguradoras } = await supabase.from('seguradoras').select('id, nome, ramos').eq('corretora_id', usuario?.corretora_id).order('nome')
-  const { data: clientes } = await supabase.from('clientes').select('id, segurado, cpf_cnpj, cpf_cnpj_segurado').eq('corretora_id', usuario?.corretora_id).order('segurado')
+  const corretora_id = usuario?.corretora_id
+  const [{ data: seguradoras }, { data: clientes }] = await Promise.all([
+    supabase.from('seguradoras').select('id, nome, ramos').eq('corretora_id', corretora_id).order('nome'),
+    supabase.from('clientes').select('id, segurado, cpf_cnpj, cpf_cnpj_segurado').eq('corretora_id', corretora_id).order('segurado'),
+  ])
 
   return (
     <ApoliceForm

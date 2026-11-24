@@ -10,12 +10,14 @@ export default async function EditApolicePage({ params }: { params: { id: string
   if (!session) redirect('/auth/login')
 
   const { data: usuario } = await supabase.from('usuarios').select('corretora_id').eq('id', session.user.id).single()
-  const { data: apolice } = await supabase.from('apolices').select('*').eq('id', params.id).single()
+  const corretora_id = usuario?.corretora_id
+  const [{ data: apolice }, { data: seguradoras }, { data: clientes }, { data: documentos }] = await Promise.all([
+    supabase.from('apolices').select('*').eq('id', params.id).single(),
+    supabase.from('seguradoras').select('id, nome, ramos').eq('corretora_id', corretora_id).order('nome'),
+    supabase.from('clientes').select('id, segurado, cpf_cnpj, cpf_cnpj_segurado').eq('corretora_id', corretora_id).order('segurado'),
+    supabase.from('documentos_apolice').select('*').eq('apolice_id', params.id).order('criado_em', { ascending: false }),
+  ])
   if (!apolice) notFound()
-
-  const { data: seguradoras } = await supabase.from('seguradoras').select('id, nome, ramos').eq('corretora_id', usuario?.corretora_id).order('nome')
-  const { data: clientes } = await supabase.from('clientes').select('id, segurado, cpf_cnpj, cpf_cnpj_segurado').eq('corretora_id', usuario?.corretora_id).order('segurado')
-  const { data: documentos } = await supabase.from('documentos_apolice').select('*').eq('apolice_id', params.id).order('criado_em', { ascending: false })
 
   return (
     <ApoliceForm

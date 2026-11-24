@@ -5,7 +5,7 @@
  * Isso garante captura de dados em rodapés mesmo quando páginas densas
  * consumiriam todo o orçamento de caracteres antes do final do documento.
  */
-export async function extractTextFromPdf(file: File, maxChars = 12000): Promise<string> {
+export async function extractTextFromPdf(file: File, maxChars = 8000): Promise<string> {
   const pdfjsLib = await import('pdfjs-dist')
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
@@ -13,7 +13,7 @@ export async function extractTextFromPdf(file: File, maxChars = 12000): Promise<
   const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) })
   const pdf = await loadingTask.promise
 
-  const pagesToRead = Math.min(pdf.numPages, 12)
+  const pagesToRead = Math.min(pdf.numPages, 4)
   const pageTexts: string[] = []
 
   for (let i = 1; i <= pagesToRead; i++) {

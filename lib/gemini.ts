@@ -4,8 +4,8 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
 
 // Dados-chave da apólice estão nas primeiras páginas. Limitar o texto
 // reduz drasticamente os tokens enviados e a latência da resposta da IA.
-const TEXT_LIMIT = 12000
-const MODEL_FALLBACKS = ['gemini-flash-latest', 'gemini-flash-lite-latest']
+const TEXT_LIMIT = 8000
+const MODEL_FALLBACKS = ['gemini-flash-lite-latest', 'gemini-flash-latest']
 const MAX_RETRIES_PER_MODEL = 2
 
 function sleep(ms: number) {
