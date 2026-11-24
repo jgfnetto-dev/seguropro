@@ -13,7 +13,7 @@ export async function extractTextFromPdf(file: File, maxChars = 12000): Promise<
   const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) })
   const pdf = await loadingTask.promise
 
-  const pagesToRead = Math.min(pdf.numPages, 4)
+  const pagesToRead = Math.min(pdf.numPages, 12)
   const pageTexts: string[] = []
 
   for (let i = 1; i <= pagesToRead; i++) {
