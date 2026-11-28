@@ -101,5 +101,5 @@ export async function POST(req: NextRequest) {
     nao_encontradas.push({ numero_apolice: numero, segurado, comissao })
   }
 
-  return NextResponse.json({ encontradas, nao_encontradas })
+  return NextResponse.json({ encontradas, nao_encontradas, _debug_itens_extraidos: itens, _debug_total_chars: pdfText.length })
 }
