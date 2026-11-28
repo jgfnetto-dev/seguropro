@@ -13,6 +13,7 @@ interface Encontrada {
   cliente: string
   segurado_extrato: string
   comissao: number
+  fallback?: boolean
 }
 
 interface NaoEncontrada {
@@ -186,7 +187,10 @@ export function ConciliacaoExtratoButton() {
                         <tbody>
                           {encontradas.map((item) => (
                             <tr key={item.apolice_id} className="border-b border-outline-variant/20 last:border-0">
-                              <td className="px-3 py-2 font-medium text-on-surface">{item.numero_apolice}</td>
+                              <td className="px-3 py-2 font-medium text-on-surface">
+                                {item.numero_apolice}
+                                {item.fallback && <span className="ml-1 text-xs text-amber-600" title="Encontrada por normalização de formato">~</span>}
+                              </td>
                               <td className="px-3 py-2 text-on-surface-variant truncate max-w-[180px]">{item.cliente || item.segurado_extrato}</td>
                               <td className="px-3 py-2 text-right font-medium text-green-700 dark:text-green-400">{formatCurrency(item.comissao)}</td>
                             </tr>

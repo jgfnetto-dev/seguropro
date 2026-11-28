@@ -60,25 +60,45 @@ export async function POST(req: NextRequest) {
     .select('id, numero_apolice, cliente:clientes(segurado)')
     .eq('corretora_id', usuario.corretora_id)
 
-  const apoliceMap = new Map<string, { id: string; cliente: string }>()
-  for (const a of apolices ?? []) {
-    apoliceMap.set(String(a.numero_apolice).trim(), {
-      id: a.id,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      cliente: (a.cliente as any)?.segurado ?? '',
-    })
+  // Remove formatação (pontos, traços, espaços) mantendo apenas dígitos e letras
+  function normalizar(valor: string) {
+    return valor.replace(/[\s.\-/]/g, '').toLowerCase()
   }
 
-  const encontradas: { numero_apolice: string; apolice_id: string; cliente: string; segurado_extrato: string; comissao: number }[] = []
+  // Mapa exato e mapa normalizado (para fallback)
+  const apoliceMapExato = new Map<string, { id: string; cliente: string }>()
+  // normalizado → lista de ids (para detectar ambiguidade)
+  const apoliceMapNorm = new Map<string, { id: string; cliente: string; numero_original: string }[]>()
+  for (const a of apolices ?? []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cliente = (a.cliente as any)?.segurado ?? ''
+    const numExato = String(a.numero_apolice).trim()
+    apoliceMapExato.set(numExato, { id: a.id, cliente })
+    const norm = normalizar(numExato)
+    const lista = apoliceMapNorm.get(norm) ?? []
+    lista.push({ id: a.id, cliente, numero_original: numExato })
+    apoliceMapNorm.set(norm, lista)
+  }
+
+  const encontradas: { numero_apolice: string; apolice_id: string; cliente: string; segurado_extrato: string; comissao: number; fallback?: boolean }[] = []
   const nao_encontradas: { numero_apolice: string; segurado: string; comissao: number }[] = []
 
   for (const [numero, { comissao, segurado }] of Array.from(agrupado.entries())) {
-    const match = apoliceMap.get(numero)
-    if (match) {
-      encontradas.push({ numero_apolice: numero, apolice_id: match.id, cliente: match.cliente, segurado_extrato: segurado, comissao })
-    } else {
-      nao_encontradas.push({ numero_apolice: numero, segurado, comissao })
+    // 1. Match exato
+    const matchExato = apoliceMapExato.get(numero)
+    if (matchExato) {
+      encontradas.push({ numero_apolice: numero, apolice_id: matchExato.id, cliente: matchExato.cliente, segurado_extrato: segurado, comissao })
+      continue
     }
+
+    // 2. Fallback normalizado — só usa se resultar em exatamente 1 candidato (sem ambiguidade)
+    const candidatos = apoliceMapNorm.get(normalizar(numero)) ?? []
+    if (candidatos.length === 1) {
+      encontradas.push({ numero_apolice: numero, apolice_id: candidatos[0].id, cliente: candidatos[0].cliente, segurado_extrato: segurado, comissao, fallback: true })
+      continue
+    }
+
+    nao_encontradas.push({ numero_apolice: numero, segurado, comissao })
   }
 
   return NextResponse.json({ encontradas, nao_encontradas })
