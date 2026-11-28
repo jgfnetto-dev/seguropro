@@ -71,8 +71,9 @@ export async function POST(req: NextRequest) {
 
   // Mapa exato e mapa normalizado (para fallback)
   const apoliceMapExato = new Map<string, { id: string; cliente: string }>()
-  // normalizado → lista de ids (para detectar ambiguidade)
-  const apoliceMapNorm = new Map<string, { id: string; cliente: string; numero_original: string }[]>()
+  const apoliceMapNorm = new Map<string, { id: string; cliente: string }[]>()
+  const apoliceList: { id: string; cliente: string; norm: string }[] = []
+
   for (const a of apolices ?? []) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cliente = (a.cliente as any)?.segurado ?? ''
@@ -80,8 +81,9 @@ export async function POST(req: NextRequest) {
     apoliceMapExato.set(numExato, { id: a.id, cliente })
     const norm = normalizar(numExato)
     const lista = apoliceMapNorm.get(norm) ?? []
-    lista.push({ id: a.id, cliente, numero_original: numExato })
+    lista.push({ id: a.id, cliente })
     apoliceMapNorm.set(norm, lista)
+    apoliceList.push({ id: a.id, cliente, norm })
   }
 
   const encontradas: { numero_apolice: string; apolice_id: string; cliente: string; segurado_extrato: string; comissao: number; fallback?: boolean }[] = []
@@ -95,11 +97,23 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    // 2. Fallback normalizado — só usa se resultar em exatamente 1 candidato (sem ambiguidade)
-    const candidatos = apoliceMapNorm.get(normalizar(numero)) ?? []
-    if (candidatos.length === 1) {
-      encontradas.push({ numero_apolice: numero, apolice_id: candidatos[0].id, cliente: candidatos[0].cliente, segurado_extrato: segurado, comissao, fallback: true })
+    const normNumero = normalizar(numero)
+
+    // 2. Fallback normalizado (remove formatação + zeros à esquerda)
+    const candidatosNorm = apoliceMapNorm.get(normNumero) ?? []
+    if (candidatosNorm.length === 1) {
+      encontradas.push({ numero_apolice: numero, apolice_id: candidatosNorm[0].id, cliente: candidatosNorm[0].cliente, segurado_extrato: segurado, comissao, fallback: true })
       continue
+    }
+
+    // 3. Fallback por sufixo — extrato usa número curto, banco armazena com prefixo
+    // Ex: "162033" casa com "510 0000162033". Exige >= 5 dígitos e resultado único.
+    if (normNumero.length >= 5) {
+      const candidatosSufixo = apoliceList.filter(a => a.norm.endsWith(normNumero) && a.norm !== normNumero)
+      if (candidatosSufixo.length === 1) {
+        encontradas.push({ numero_apolice: numero, apolice_id: candidatosSufixo[0].id, cliente: candidatosSufixo[0].cliente, segurado_extrato: segurado, comissao, fallback: true })
+        continue
+      }
     }
 
     nao_encontradas.push({ numero_apolice: numero, segurado, comissao })
