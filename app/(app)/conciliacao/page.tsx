@@ -11,6 +11,7 @@ import { ConciliarButton } from './conciliar-button'
 import { HistoricoConciliacaoButton } from './historico-button'
 import { VendedorButton } from './vendedor-button'
 import { RelatorioConciliacaoButton } from './relatorio-button'
+import { ConciliacaoExtratoButton } from './conciliacao-extrato-button'
 
 export default async function ConciliacaoPage({ searchParams }: { searchParams: { q?: string; mes?: string; ano?: string } }) {
   const supabase = await createServerSupabaseClient()
@@ -70,9 +71,12 @@ export default async function ConciliacaoPage({ searchParams }: { searchParams: 
           <h1 className="text-h1 text-on-surface">Conciliação</h1>
           <p className="text-body-sm text-on-surface-variant mt-1">Acompanhe e concilie as comissões das apólices.</p>
         </div>
-        <RelatorioConciliacaoButton
-          filtros={{ q: searchParams.q, mes: searchParams.mes, ano: searchParams.ano }}
-        />
+        <div className="flex items-center gap-2">
+          <ConciliacaoExtratoButton />
+          <RelatorioConciliacaoButton
+            filtros={{ q: searchParams.q, mes: searchParams.mes, ano: searchParams.ano }}
+          />
+        </div>
       </div>
 
       <form method="GET" className="flex flex-wrap items-end gap-3">

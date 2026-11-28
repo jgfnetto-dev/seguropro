@@ -2,8 +2,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
 
-// Dados-chave da apólice estão nas primeiras páginas. Limitar o texto
-// reduz drasticamente os tokens enviados e a latência da resposta da IA.
 const TEXT_LIMIT = 12000
 const MODEL_FALLBACKS = ['gemini-flash-lite-latest', 'gemini-flash-latest']
 const MAX_RETRIES_PER_MODEL = 2
@@ -17,7 +15,7 @@ function isRetryable(err: unknown) {
   return status === 503 || status === 429
 }
 
-async function extractWithText(text: string, prompt: string): Promise<Record<string, unknown>> {
+async function extractWithText(text: string, prompt: string): Promise<unknown> {
   const truncated = text.length > TEXT_LIMIT ? text.slice(0, TEXT_LIMIT) : text
   let lastError: unknown
 
@@ -31,9 +29,12 @@ async function extractWithText(text: string, prompt: string): Promise<Record<str
         ])
 
         const raw = result.response.text()
-        const jsonMatch = raw.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) throw new Error('No JSON found in response')
-        return JSON.parse(jsonMatch[0])
+        // Tenta array primeiro, depois objeto
+        const arrayMatch = raw.match(/\[[\s\S]*\]/)
+        const objMatch = raw.match(/\{[\s\S]*\}/)
+        const jsonStr = arrayMatch ?? objMatch
+        if (!jsonStr) throw new Error('No JSON found in response')
+        return JSON.parse(jsonStr[0])
       } catch (err) {
         lastError = err
         if (isRetryable(err) && attempt < MAX_RETRIES_PER_MODEL) {
@@ -72,7 +73,29 @@ export async function extractPdfData(pdfText: string, tiposDisponiveis?: string[
 }
 Retorne apenas o JSON, sem explicações adicionais. Mesmo em documentos com layout fora do padrão (tabelas, cartões, colunas), procure cuidadosamente por cada campo antes de retornar null. Priorize valores monetários que aparecem explicitamente rotulados como prêmio ou total do seguro.`
 
-  return extractWithText(pdfText, prompt)
+  return extractWithText(pdfText, prompt) as Promise<Record<string, unknown>>
+}
+
+export interface ExtratoItem {
+  numero_apolice: string
+  comissao: number
+  segurado: string
+  tipo: string
+}
+
+export async function extractExtratoPdf(pdfText: string): Promise<ExtratoItem[]> {
+  const prompt = `Extraia TODOS os itens de comissão deste extrato do corretor e retorne APENAS um array JSON.
+Cada linha da tabela de segurados deve virar um objeto:
+{"numero_apolice": "valor exato da coluna Apolice / Bilhete (string)", "comissao": número da coluna Comissão (R$) sem R$, "segurado": "nome da coluna Segurado", "tipo": "valor da coluna Tipo"}
+Inclua TODAS as linhas (COMISSAO, COMISSAO ANTECIPADA, GANHO EXTRA, etc).
+Retorne apenas o array JSON, sem texto adicional.
+Exemplo: [{"numero_apolice":"161497","comissao":110.00,"segurado":"CONSTRUTORA BRUMANA LTDA","tipo":"COMISSAO"}]`
+
+  const result = await extractWithText(pdfText, prompt)
+  if (Array.isArray(result)) return result as ExtratoItem[]
+  const values = Object.values(result as Record<string, unknown>)
+  if (values.length === 1 && Array.isArray(values[0])) return values[0] as ExtratoItem[]
+  throw new Error('Formato de resposta inesperado da IA')
 }
 
 export async function extractEndossoData(pdfText: string): Promise<Record<string, unknown>> {
@@ -92,5 +115,5 @@ export async function extractEndossoData(pdfText: string): Promise<Record<string
 }
 Retorne apenas o JSON, sem explicações adicionais. Os campos de veículo só existem em endossos de seguro automotivo; use null quando não se aplicar.`
 
-  return extractWithText(pdfText, prompt)
+  return extractWithText(pdfText, prompt) as Promise<Record<string, unknown>>
 }
