@@ -15,8 +15,8 @@ function isRetryable(err: unknown) {
   return status === 503 || status === 429
 }
 
-async function extractWithText(text: string, prompt: string): Promise<unknown> {
-  const truncated = text.length > TEXT_LIMIT ? text.slice(0, TEXT_LIMIT) : text
+async function extractWithText(text: string, prompt: string, maxChars = TEXT_LIMIT): Promise<unknown> {
+  const truncated = text.length > maxChars ? text.slice(0, maxChars) : text
   let lastError: unknown
 
   for (const modelName of MODEL_FALLBACKS) {
@@ -91,7 +91,8 @@ Inclua TODAS as linhas (COMISSAO, COMISSAO ANTECIPADA, GANHO EXTRA, etc).
 Retorne apenas o array JSON, sem texto adicional.
 Exemplo: [{"numero_apolice":"161497","comissao":110.00,"segurado":"CONSTRUTORA BRUMANA LTDA","tipo":"COMISSAO"}]`
 
-  const result = await extractWithText(pdfText, prompt)
+  // Extratos têm cabeçalho pesado repetido por página — limite bem maior que o de apólices individuais
+  const result = await extractWithText(pdfText, prompt, 60000)
   if (Array.isArray(result)) return result as ExtratoItem[]
   const values = Object.values(result as Record<string, unknown>)
   if (values.length === 1 && Array.isArray(values[0])) return values[0] as ExtratoItem[]
