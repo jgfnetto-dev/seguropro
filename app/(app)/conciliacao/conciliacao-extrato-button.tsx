@@ -20,6 +20,7 @@ interface NaoEncontrada {
   numero_apolice: string
   segurado: string
   comissao: number
+  ja_conciliada?: boolean
 }
 
 type Etapa = 'upload' | 'preview' | 'confirmando'
@@ -217,7 +218,14 @@ export function ConciliacaoExtratoButton() {
                           {naoEncontradas.map((item) => (
                             <tr key={item.numero_apolice} className="border-b border-amber-100 dark:border-amber-900 last:border-0">
                               <td className="px-3 py-2 font-medium text-on-surface">{item.numero_apolice}</td>
-                              <td className="px-3 py-2 text-on-surface-variant truncate max-w-[180px]">{item.segurado}</td>
+                              <td className="px-3 py-2 text-on-surface-variant truncate max-w-[180px]">
+                                {item.segurado}
+                                {item.ja_conciliada && (
+                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
+                                    Conciliado
+                                  </span>
+                                )}
+                              </td>
                               <td className="px-3 py-2 text-right text-on-surface-variant">{formatCurrency(item.comissao)}</td>
                             </tr>
                           ))}

@@ -54,11 +54,23 @@ export async function POST(req: NextRequest) {
     agrupado.set(key, { comissao: atual.comissao + Number(item.comissao), segurado: atual.segurado })
   }
 
-  // Busca todas as apólices da corretora para fazer o matching
-  const { data: apolices } = await supabase
-    .from('apolices')
-    .select('id, numero_apolice, cliente:clientes(segurado)')
-    .eq('corretora_id', usuario.corretora_id)
+  // Busca apólices e conciliações existentes em paralelo
+  const [{ data: apolices }, { data: conciliacoes }] = await Promise.all([
+    supabase
+      .from('apolices')
+      .select('id, numero_apolice, premio_liquido, comissao_percentual, cliente:clientes(segurado)')
+      .eq('corretora_id', usuario.corretora_id),
+    supabase
+      .from('conciliacao')
+      .select('apolice_id, valor_conciliar')
+      .eq('corretora_id', usuario.corretora_id),
+  ])
+
+  // Soma do que já foi conciliado por apólice
+  const jaConciliadoMap = new Map<string, number>()
+  for (const c of conciliacoes ?? []) {
+    jaConciliadoMap.set(c.apolice_id, (jaConciliadoMap.get(c.apolice_id) ?? 0) + Number(c.valor_conciliar))
+  }
 
   // Remove formatação e zeros à esquerda de strings puramente numéricas
   function normalizar(valor: string) {
@@ -87,33 +99,39 @@ export async function POST(req: NextRequest) {
   }
 
   const encontradas: { numero_apolice: string; apolice_id: string; cliente: string; segurado_extrato: string; comissao: number; fallback?: boolean }[] = []
-  const nao_encontradas: { numero_apolice: string; segurado: string; comissao: number }[] = []
+  const nao_encontradas: { numero_apolice: string; segurado: string; comissao: number; ja_conciliada?: boolean }[] = []
+
+  function classificar(match: { id: string; cliente: string }, numero: string, segurado: string, comissao: number, fallback?: boolean) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const apolice = (apolices ?? []).find(a => a.id === match.id) as any
+    const comissaoCalculada = apolice
+      ? Number(apolice.premio_liquido ?? 0) * ((Number(apolice.comissao_percentual ?? 0)) / 100)
+      : null
+    const jaConciliado = jaConciliadoMap.get(match.id) ?? 0
+    const jaConciliada = comissaoCalculada !== null && Math.round((comissaoCalculada - jaConciliado) * 100) / 100 <= 0
+
+    if (jaConciliada) {
+      nao_encontradas.push({ numero_apolice: numero, segurado, comissao, ja_conciliada: true })
+    } else {
+      encontradas.push({ numero_apolice: numero, apolice_id: match.id, cliente: match.cliente, segurado_extrato: segurado, comissao, fallback })
+    }
+  }
 
   for (const [numero, { comissao, segurado }] of Array.from(agrupado.entries())) {
     // 1. Match exato
     const matchExato = apoliceMapExato.get(numero)
-    if (matchExato) {
-      encontradas.push({ numero_apolice: numero, apolice_id: matchExato.id, cliente: matchExato.cliente, segurado_extrato: segurado, comissao })
-      continue
-    }
+    if (matchExato) { classificar(matchExato, numero, segurado, comissao); continue }
 
     const normNumero = normalizar(numero)
 
     // 2. Fallback normalizado (remove formatação + zeros à esquerda)
     const candidatosNorm = apoliceMapNorm.get(normNumero) ?? []
-    if (candidatosNorm.length === 1) {
-      encontradas.push({ numero_apolice: numero, apolice_id: candidatosNorm[0].id, cliente: candidatosNorm[0].cliente, segurado_extrato: segurado, comissao, fallback: true })
-      continue
-    }
+    if (candidatosNorm.length === 1) { classificar(candidatosNorm[0], numero, segurado, comissao, true); continue }
 
     // 3. Fallback por sufixo — extrato usa número curto, banco armazena com prefixo
-    // Ex: "162033" casa com "510 0000162033". Exige >= 5 dígitos e resultado único.
     if (normNumero.length >= 5) {
       const candidatosSufixo = apoliceList.filter(a => a.norm.endsWith(normNumero) && a.norm !== normNumero)
-      if (candidatosSufixo.length === 1) {
-        encontradas.push({ numero_apolice: numero, apolice_id: candidatosSufixo[0].id, cliente: candidatosSufixo[0].cliente, segurado_extrato: segurado, comissao, fallback: true })
-        continue
-      }
+      if (candidatosSufixo.length === 1) { classificar(candidatosSufixo[0], numero, segurado, comissao, true); continue }
     }
 
     nao_encontradas.push({ numero_apolice: numero, segurado, comissao })
