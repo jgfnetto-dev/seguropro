@@ -60,9 +60,13 @@ export async function POST(req: NextRequest) {
     .select('id, numero_apolice, cliente:clientes(segurado)')
     .eq('corretora_id', usuario.corretora_id)
 
-  // Remove formatação (pontos, traços, espaços) mantendo apenas dígitos e letras
+  // Remove formatação e zeros à esquerda de strings puramente numéricas
   function normalizar(valor: string) {
-    return valor.replace(/[\s.\-/]/g, '').toLowerCase()
+    const s = valor.replace(/[\s.\-/]/g, '').toLowerCase()
+    if (/^\d+$/.test(s)) {
+      try { return BigInt(s).toString() } catch { return s }
+    }
+    return s
   }
 
   // Mapa exato e mapa normalizado (para fallback)
@@ -101,5 +105,5 @@ export async function POST(req: NextRequest) {
     nao_encontradas.push({ numero_apolice: numero, segurado, comissao })
   }
 
-  return NextResponse.json({ encontradas, nao_encontradas, _debug_itens_extraidos: itens, _debug_total_chars: pdfText.length })
+  return NextResponse.json({ encontradas, nao_encontradas })
 }
